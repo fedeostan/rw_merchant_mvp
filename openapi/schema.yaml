@@ -1,0 +1,542 @@
+openapi: 3.0.3
+info:
+  title: Merchant Crypto Wallet Dashboard API
+  version: 0.1.0
+  description: MVP API contract for merchant crypto wallet dashboard
+
+servers:
+  - url: /api
+    description: API base URL
+
+paths:
+  /auth/otp/send:
+    post:
+      summary: Send OTP to email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '204':
+          description: OTP sent successfully
+
+  /auth/otp/verify:
+    post:
+      summary: Verify OTP and authenticate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - code
+              properties:
+                email:
+                  type: string
+                  format: email
+                code:
+                  type: string
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /me:
+    get:
+      summary: Get current user and org
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User and org info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+
+  /orgs/{orgId}/storefronts:
+    get:
+      summary: List storefronts for org
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of storefronts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Storefront'
+
+  /orgs/{orgId}/storefronts/{sfId}/balance:
+    get:
+      summary: Get balance for storefront
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sfId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Balance information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoneyBalance'
+
+  /orgs/{orgId}/transactions:
+    get:
+      summary: List transactions with pagination
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: storefrontId
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            $ref: '#/components/schemas/TransactionType'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/TransactionStatus'
+        - name: cursor
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paginated transactions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionsResponse'
+
+  /orgs/{orgId}/modules:
+    get:
+      summary: List modules for org
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of modules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Module'
+    post:
+      summary: Create a new module
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateModuleRequest'
+      responses:
+        '200':
+          description: Created module
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Module'
+
+  /orgs/{orgId}/modules/{moduleId}:
+    patch:
+      summary: Update a module
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: moduleId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateModuleRequest'
+      responses:
+        '200':
+          description: Updated module
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Module'
+
+  /orgs/{orgId}/apikeys:
+    get:
+      summary: List API keys for org
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of API keys
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeysResponse'
+    post:
+      summary: Create a new API key
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Created API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - email
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+
+    Org:
+      type: object
+      required:
+        - id
+        - kybStatus
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        kybStatus:
+          type: string
+          enum:
+            - approved
+            - pending
+            - rejected
+
+    Storefront:
+      type: object
+      required:
+        - id
+        - label
+        - type
+        - currency
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+          enum:
+            - CRYPTO
+            - USD_BANK
+        currency:
+          type: string
+        address:
+          type: string
+
+    MoneyBalance:
+      type: object
+      required:
+        - currency
+        - available
+        - pending
+        - updatedAt
+      properties:
+        storefrontId:
+          type: string
+        currency:
+          type: string
+        available:
+          type: number
+          format: double
+        pending:
+          type: number
+          format: double
+        updatedAt:
+          type: string
+          format: date-time
+
+    TransactionType:
+      type: string
+      enum:
+        - in
+        - out
+
+    TransactionStatus:
+      type: string
+      enum:
+        - pending
+        - posted
+        - failed
+
+    Transaction:
+      type: object
+      required:
+        - id
+        - storefrontId
+        - type
+        - method
+        - amount
+        - currency
+        - status
+        - createdAt
+      properties:
+        id:
+          type: string
+        storefrontId:
+          type: string
+        moduleId:
+          type: string
+        type:
+          $ref: '#/components/schemas/TransactionType'
+        method:
+          type: string
+          enum:
+            - stablecoin
+            - payout
+            - adjustment
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+        status:
+          $ref: '#/components/schemas/TransactionStatus'
+        createdAt:
+          type: string
+          format: date-time
+        txHashIn:
+          type: string
+        txHashSwap:
+          type: string
+        feeUsd:
+          type: number
+          format: double
+        customerAddress:
+          type: string
+
+    TransactionsResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+        nextCursor:
+          type: string
+
+    Module:
+      type: object
+      required:
+        - id
+        - name
+        - kind
+        - storefrontId
+        - codeSnippet
+        - status
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        kind:
+          type: string
+          enum:
+            - checkout
+            - payment_link
+        storefrontId:
+          type: string
+        codeSnippet:
+          type: string
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+        imageUrl:
+          type: string
+
+    CreateModuleRequest:
+      type: object
+      required:
+        - name
+        - kind
+        - storefrontId
+        - codeSnippet
+      properties:
+        name:
+          type: string
+        kind:
+          type: string
+          enum:
+            - checkout
+            - payment_link
+        storefrontId:
+          type: string
+        codeSnippet:
+          type: string
+        imageUrl:
+          type: string
+
+    UpdateModuleRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        codeSnippet:
+          type: string
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+        imageUrl:
+          type: string
+
+    ApiKey:
+      type: object
+      required:
+        - id
+        - last4
+        - createdAt
+        - active
+      properties:
+        id:
+          type: string
+        last4:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        active:
+          type: boolean
+
+    ApiKeysResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiKey'
+
+    ApiKeyResponse:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+
+    AuthResponse:
+      type: object
+      required:
+        - accessToken
+        - user
+        - org
+      properties:
+        accessToken:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        org:
+          $ref: '#/components/schemas/Org'
+
+    MeResponse:
+      type: object
+      required:
+        - user
+        - org
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        org:
+          $ref: '#/components/schemas/Org'
+
