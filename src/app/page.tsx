@@ -1,12 +1,26 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+
 export default function Home() {
+  const { isAuthenticated, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading) {
+      if (isAuthenticated) {
+        router.push("/dashboard");
+      } else {
+        router.push("/login");
+      }
+    }
+  }, [isAuthenticated, loading, router]);
+
   return (
     <main className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold mb-4">
-          Merchant Crypto Wallet Dashboard
-        </h1>
-        <p className="text-gray-600">Environment setup complete</p>
-      </div>
+      <div className="text-slate-600">Loading...</div>
     </main>
   );
 }

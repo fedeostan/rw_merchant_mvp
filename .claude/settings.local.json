@@ -2,9 +2,23 @@
   "permissions": {
     "allow": [
       "Bash(env)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(pnpm add:*)",
+      "Bash(gh:*)",
+      "Bash(brew install:*)",
+      "Bash(pnpm dlx:*)",
+      "Bash(pnpm run build:*)",
+      "Bash(pnpm run dev:*)",
+      "Bash(pkill:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ]
 }

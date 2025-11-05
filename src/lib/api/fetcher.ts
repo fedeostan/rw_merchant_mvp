@@ -1,12 +1,13 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
+import { createClient } from "@/lib/supabase/client";
 
-const getAuthToken = (): string | null => {
+const getAuthToken = async (): Promise<string | null> => {
   if (typeof window === "undefined") return null;
-  const session = localStorage.getItem("session");
-  if (!session) return null;
+
   try {
-    const parsed = JSON.parse(session);
-    return parsed.accessToken || null;
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || null;
   } catch {
     return null;
   }
@@ -16,12 +17,12 @@ const getBaseURL = (): string => {
   return process.env.NEXT_PUBLIC_API_BASE_URL || "/api";
 };
 
-export const customInstance = <T>(
+export const customInstance = async <T>(
   config: AxiosRequestConfig,
   options?: AxiosRequestConfig
 ): Promise<T> => {
   const source = axios.CancelToken.source();
-  const token = getAuthToken();
+  const token = await getAuthToken();
 
   const promise = axios({
     ...config,
@@ -44,4 +45,5 @@ export const customInstance = <T>(
 };
 
 export default customInstance;
+
 

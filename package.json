@@ -13,8 +13,11 @@
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.3",
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.79.0",
     "@tanstack/react-query": "^5.90.6",
     "@types/node": "^24.10.0",
     "@types/react": "^19.2.2",
@@ -40,7 +43,8 @@
     "@tailwindcss/postcss": "^4.1.16",
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.0.1",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "shadcn": "^3.5.0"
   },
   "msw": {
     "workerDirectory": [

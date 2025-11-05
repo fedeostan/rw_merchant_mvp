@@ -2,7 +2,16 @@ openapi: 3.0.3
 info:
   title: Merchant Crypto Wallet Dashboard API
   version: 0.1.0
-  description: MVP API contract for merchant crypto wallet dashboard
+  description: |
+    MVP API contract for merchant crypto wallet dashboard
+
+    ## Authentication
+    This API uses Supabase Auth for authentication. Users authenticate via OTP (One-Time Password)
+    sent to their email. The authentication flow is handled directly by Supabase Auth client,
+    not through these API endpoints.
+
+    For protected endpoints, include the Supabase session access token in the Authorization header:
+    `Authorization: Bearer <supabase_access_token>`
 
 servers:
   - url: /api
@@ -11,7 +20,11 @@ servers:
 paths:
   /auth/otp/send:
     post:
-      summary: Send OTP to email
+      summary: Send OTP to email (DEPRECATED)
+      deprecated: true
+      description: |
+        **DEPRECATED:** This endpoint is no longer used. Authentication is now handled
+        directly by Supabase Auth client using `supabase.auth.signInWithOtp()`.
       requestBody:
         required: true
         content:
@@ -30,7 +43,11 @@ paths:
 
   /auth/otp/verify:
     post:
-      summary: Verify OTP and authenticate
+      summary: Verify OTP and authenticate (DEPRECATED)
+      deprecated: true
+      description: |
+        **DEPRECATED:** This endpoint is no longer used. OTP verification is now handled
+        directly by Supabase Auth client using `supabase.auth.verifyOtp()`.
       requestBody:
         required: true
         content:
@@ -539,4 +556,5 @@ components:
           $ref: '#/components/schemas/User'
         org:
           $ref: '#/components/schemas/Org'
+
 

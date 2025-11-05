@@ -22,25 +22,6 @@ let modules = [...mockModules];
 let apiKeys = [...mockApiKeys];
 
 export const handlers = [
-  // Auth endpoints
-  http.post("/api/auth/otp/send", () => {
-    return HttpResponse.json(null, { status: 204 });
-  }),
-
-  http.post("/api/auth/otp/verify", async ({ request }) => {
-    const body = (await request.json()) as { email: string; code: string };
-    
-    // Mock: accept any email/code
-    const accessToken = `mock_token_${Date.now()}`;
-    
-    // Store session in localStorage (handled by client)
-    return HttpResponse.json({
-      accessToken,
-      user: mockUser,
-      org: mockOrg,
-    });
-  }),
-
   // Me endpoint
   http.get("/api/me", () => {
     return HttpResponse.json({
@@ -151,4 +132,5 @@ export const handlers = [
     return HttpResponse.json({ id: newKey.id });
   }),
 ];
+
 
