@@ -23,7 +23,8 @@ let apiKeys = [...mockApiKeys];
 
 export const handlers = [
   // Me endpoint
-  http.get("/api/me", () => {
+  http.get("*/api/me", () => {
+    console.log("[MSW] Handling: GET /api/me");
     return HttpResponse.json({
       user: mockUser,
       org: mockOrg,
@@ -31,24 +32,77 @@ export const handlers = [
   }),
 
   // Storefronts
-  http.get(`/api/orgs/${MOCK_ORG_ID}/storefronts`, () => {
+  http.get(`*/api/orgs/${MOCK_ORG_ID}/storefronts`, () => {
+    console.log(`[MSW] Handling: GET /api/orgs/${MOCK_ORG_ID}/storefronts`);
     return HttpResponse.json([mockStorefront]);
   }),
 
   // Balance
-  http.get(`/api/orgs/${MOCK_ORG_ID}/storefronts/:sfId/balance`, () => {
+  http.get(`*/api/orgs/${MOCK_ORG_ID}/storefronts/:sfId/balance`, () => {
+    console.log(`[MSW] Handling: GET /api/orgs/${MOCK_ORG_ID}/storefronts/:sfId/balance`);
     const balance: MoneyBalance = {
       storefrontId: "sf_1",
       currency: "MNEE",
-      available: 12540.33,
-      pending: 210.0,
+      available: 24567.0,
+      pending: 0.0,
       updatedAt: new Date().toISOString(),
     };
     return HttpResponse.json(balance);
   }),
 
+  // MNEE Price
+  http.get("*/api/mnee/price", () => {
+    console.log("[MSW] Handling: GET /api/mnee/price");
+    return HttpResponse.json({
+      price: 1.10,
+      currency: "USD",
+      change24h: 2.5,
+      lastUpdated: new Date().toISOString(),
+    });
+  }),
+
+  // Wallet Actions
+  http.post("*/api/wallet/buy", async ({ request }) => {
+    const body = (await request.json()) as { amount: number };
+    return HttpResponse.json({
+      success: true,
+      transactionId: `tx_buy_${Date.now()}`,
+      amount: body.amount,
+      timestamp: new Date().toISOString(),
+    });
+  }),
+
+  http.post("*/api/wallet/sell", async ({ request }) => {
+    const body = (await request.json()) as { amount: number };
+    return HttpResponse.json({
+      success: true,
+      transactionId: `tx_sell_${Date.now()}`,
+      amount: body.amount,
+      timestamp: new Date().toISOString(),
+    });
+  }),
+
+  http.post("*/api/wallet/send", async ({ request }) => {
+    const body = (await request.json()) as { amount: number; recipient: string };
+    return HttpResponse.json({
+      success: true,
+      transactionId: `tx_send_${Date.now()}`,
+      amount: body.amount,
+      recipient: body.recipient,
+      timestamp: new Date().toISOString(),
+    });
+  }),
+
+  http.post("*/api/wallet/receive", async () => {
+    return HttpResponse.json({
+      success: true,
+      address: "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+      qrCode: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    });
+  }),
+
   // Transactions
-  http.get(`/api/orgs/${MOCK_ORG_ID}/transactions`, ({ request }) => {
+  http.get(`*/api/orgs/${MOCK_ORG_ID}/transactions`, ({ request }) => {
     const url = new URL(request.url);
     const storefrontId = url.searchParams.get("storefrontId");
     const type = url.searchParams.get("type");
@@ -82,11 +136,11 @@ export const handlers = [
   }),
 
   // Modules
-  http.get(`/api/orgs/${MOCK_ORG_ID}/modules`, () => {
+  http.get(`*/api/orgs/${MOCK_ORG_ID}/modules`, () => {
     return HttpResponse.json(modules);
   }),
 
-  http.post(`/api/orgs/${MOCK_ORG_ID}/modules`, async ({ request }) => {
+  http.post(`*/api/orgs/${MOCK_ORG_ID}/modules`, async ({ request }) => {
     const body = (await request.json()) as CreateModuleRequest;
     const newModule: Module = {
       id: `module_${modules.length + 1}`,
@@ -98,12 +152,12 @@ export const handlers = [
   }),
 
   http.patch(
-    `/api/orgs/${MOCK_ORG_ID}/modules/:moduleId`,
+    `*/api/orgs/${MOCK_ORG_ID}/modules/:moduleId`,
     async ({ params, request }) => {
       const { moduleId } = params;
       const body = (await request.json()) as UpdateModuleRequest;
       const index = modules.findIndex((m) => m.id === moduleId);
-      
+
       if (index === -1) {
         return HttpResponse.json(null, { status: 404 });
       }
@@ -114,14 +168,14 @@ export const handlers = [
   ),
 
   // API Keys
-  http.get(`/api/orgs/${MOCK_ORG_ID}/apikeys`, () => {
+  http.get(`*/api/orgs/${MOCK_ORG_ID}/apikeys`, () => {
     const response: ApiKeysResponse = {
       items: apiKeys,
     };
     return HttpResponse.json(response);
   }),
 
-  http.post(`/api/orgs/${MOCK_ORG_ID}/apikeys`, () => {
+  http.post(`*/api/orgs/${MOCK_ORG_ID}/apikeys`, () => {
     const newKey = {
       id: `key_${apiKeys.length + 1}`,
       last4: `${Math.floor(Math.random() * 10000)}`.padStart(4, "0"),

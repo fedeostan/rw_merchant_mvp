@@ -1,0 +1,21 @@
+import { Wrench } from "lucide-react";
+
+export default function MerchantToolsPage() {
+  return (
+    <div className="flex flex-col h-full">
+      {/* Page Header */}
+      <div className="flex items-center gap-2 h-16 px-4 border-b border-border">
+        <div className="flex items-center justify-center w-7 h-7">
+          <Wrench className="w-4 h-4 text-foreground" />
+        </div>
+        <div className="w-4 h-4 text-foreground">/</div>
+        <p className="text-sm font-normal text-foreground">Merchant Tools</p>
+      </div>
+
+      {/* Content Area - Blank */}
+      <div className="flex-1 p-6">
+        {/* Content will be added later */}
+      </div>
+    </div>
+  );
+}

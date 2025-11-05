@@ -9,9 +9,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [mswReady, setMswReady] = useState(false);
 
   useEffect(() => {
-    // Only wait for MSW if it's enabled
-    const isMSWEnabled = process.env.NEXT_PUBLIC_MSW === "true";
+    // TEMPORARY: Force enable MSW in development since Next.js 16 + Turbopack
+    // has issues with NEXT_PUBLIC_ env vars not being exposed to browser
+    const isMSWEnabled = process.env.NODE_ENV === "development";
 
+    console.log("[Providers] NODE_ENV:", process.env.NODE_ENV);
     console.log("[Providers] NEXT_PUBLIC_MSW:", process.env.NEXT_PUBLIC_MSW);
     console.log("[Providers] isMSWEnabled:", isMSWEnabled);
 
@@ -38,8 +40,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Only wait for MSW if it's enabled and we're in development/preview
-  const isMSWEnabled = process.env.NEXT_PUBLIC_MSW === "true";
-  const shouldWait = isMSWEnabled && (process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview");
+  const isMSWEnabled = process.env.NODE_ENV === "development";
+  const shouldWait = isMSWEnabled;
 
   if (!mswReady && shouldWait) {
     console.log("[Providers] Waiting for MSW... (mswReady:", mswReady, "shouldWait:", shouldWait, ")");
