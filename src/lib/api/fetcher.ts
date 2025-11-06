@@ -1,14 +1,31 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { createClient } from "@/lib/supabase/client";
 
+// Token cache to avoid async calls on every request
+let cachedToken: string | null = null;
+let tokenExpiry: number = 0;
+
 const getAuthToken = async (): Promise<string | null> => {
   if (typeof window === "undefined") return null;
 
+  // Return cached token if still valid
+  if (cachedToken && Date.now() < tokenExpiry) {
+    console.log("[getAuthToken] Using cached token");
+    return cachedToken;
+  }
+
+  // Fetch fresh token
   try {
+    console.log("[getAuthToken] Fetching fresh token from Supabase");
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
-    return session?.access_token || null;
-  } catch {
+    cachedToken = session?.access_token || null;
+    // Cache for 55 minutes (tokens typically expire in 1 hour)
+    tokenExpiry = Date.now() + (55 * 60 * 1000);
+    console.log("[getAuthToken] Token cached, expires in 55 minutes");
+    return cachedToken;
+  } catch (error) {
+    console.error("[getAuthToken] Failed to fetch token:", error);
     return null;
   }
 };

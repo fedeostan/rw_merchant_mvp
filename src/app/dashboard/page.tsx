@@ -1,13 +1,25 @@
 "use client";
 
+import { useState } from "react";
 import { Wallet, Minus, ArrowUpRight, ArrowDownLeft, Plus, Repeat2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useWalletBalance } from "@/hooks/useWalletBalance";
 import { useMneePrice } from "@/hooks/useMneePrice";
 import { AnnouncementCard } from "@/components/dashboard/AnnouncementCard";
 import { BalanceCard } from "@/components/dashboard/BalanceCard";
 import { ActionButton } from "@/components/dashboard/ActionButton";
+import { ReceiveModal } from "@/components/dashboard/ReceiveModal";
+import { SendModal } from "@/components/dashboard/SendModal";
 
 export default function WalletPage() {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshSuccess, setRefreshSuccess] = useState(false);
+  const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
+  const [isSendModalOpen, setIsSendModalOpen] = useState(false);
+
+  // Get the QueryClient instance from React Context
+  const queryClient = useQueryClient();
+
   // Fetch wallet data
   const { balance, isLoading: balanceLoading, error: balanceError, refresh: refreshBalance } = useWalletBalance("sf_1");
   const { price, isLoading: priceLoading, error: priceError, refresh: refreshPrice } = useMneePrice();
@@ -16,9 +28,34 @@ export default function WalletPage() {
   const isLoading = balanceLoading || priceLoading;
 
   // Refresh both balance and price
-  const handleRefresh = () => {
-    refreshBalance();
-    refreshPrice();
+  const handleRefresh = async () => {
+    if (isRefreshing) return; // Prevent double-clicks
+
+    try {
+      setIsRefreshing(true);
+      setRefreshSuccess(false);
+      console.log('[Dashboard] Refreshing balance and price...');
+
+      // Invalidate cache to ensure fresh data (this automatically triggers refetch for active queries)
+      await queryClient.invalidateQueries({
+        queryKey: ['/orgs/org_1/storefronts/sf_1/balance'],
+        refetchType: 'active'
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ['/mnee/price'],
+        refetchType: 'active'
+      });
+
+      console.log('[Dashboard] Refresh complete');
+
+      // Show success feedback
+      setRefreshSuccess(true);
+      setTimeout(() => setRefreshSuccess(false), 2000); // Hide after 2 seconds
+    } catch (error) {
+      console.error('[Dashboard] Refresh failed:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   return (
@@ -50,6 +87,8 @@ export default function WalletPage() {
               currency={balance?.currency}
               pricePerUnit={price?.price}
               isLoading={isLoading}
+              isRefreshing={isRefreshing}
+              refreshSuccess={refreshSuccess}
               error={(balanceError || priceError) as Error | null}
               onRefresh={handleRefresh}
             />
@@ -75,17 +114,29 @@ export default function WalletPage() {
               <ActionButton
                 icon={ArrowUpRight}
                 label="Send"
-                onClick={() => console.log("Send clicked")}
+                onClick={() => setIsSendModalOpen(true)}
               />
               <ActionButton
                 icon={ArrowDownLeft}
                 label="Receive"
-                onClick={() => console.log("Receive clicked")}
+                onClick={() => setIsReceiveModalOpen(true)}
               />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Receive Modal */}
+      <ReceiveModal
+        open={isReceiveModalOpen}
+        onOpenChange={setIsReceiveModalOpen}
+      />
+
+      {/* Send Modal */}
+      <SendModal
+        open={isSendModalOpen}
+        onOpenChange={setIsSendModalOpen}
+      />
     </div>
   );
 }

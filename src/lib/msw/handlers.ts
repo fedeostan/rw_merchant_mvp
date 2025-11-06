@@ -39,7 +39,9 @@ export const handlers = [
 
   // Balance
   http.get(`*/api/orgs/${MOCK_ORG_ID}/storefronts/:sfId/balance`, () => {
-    console.log(`[MSW] Handling: GET /api/orgs/${MOCK_ORG_ID}/storefronts/:sfId/balance`);
+    console.log(
+      `[MSW] Handling: GET /api/orgs/${MOCK_ORG_ID}/storefronts/:sfId/balance`
+    );
     const balance: MoneyBalance = {
       storefrontId: "sf_1",
       currency: "MNEE",
@@ -54,7 +56,7 @@ export const handlers = [
   http.get("*/api/mnee/price", () => {
     console.log("[MSW] Handling: GET /api/mnee/price");
     return HttpResponse.json({
-      price: 1.10,
+      price: 1.1,
       currency: "USD",
       change24h: 2.5,
       lastUpdated: new Date().toISOString(),
@@ -83,7 +85,10 @@ export const handlers = [
   }),
 
   http.post("*/api/wallet/send", async ({ request }) => {
-    const body = (await request.json()) as { amount: number; recipient: string };
+    const body = (await request.json()) as {
+      amount: number;
+      recipient: string;
+    };
     return HttpResponse.json({
       success: true,
       transactionId: `tx_send_${Date.now()}`,
@@ -97,7 +102,8 @@ export const handlers = [
     return HttpResponse.json({
       success: true,
       address: "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
-      qrCode: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      qrCode:
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
     });
   }),
 
@@ -186,5 +192,3 @@ export const handlers = [
     return HttpResponse.json({ id: newKey.id });
   }),
 ];
-
-
