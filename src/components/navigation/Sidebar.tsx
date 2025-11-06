@@ -5,6 +5,9 @@ import { usePathname } from "next/navigation";
 import { Wallet, CreditCard, Wrench, LogOut, ChevronUp } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
+import logoImage from "@/assets/mnee-pay-logo.png";
 
 const navItems = [
   {
@@ -32,13 +35,22 @@ export function Sidebar() {
     <div className="fixed left-0 top-0 h-screen w-[277px] bg-sidebar flex flex-col">
       {/* Header with Logo */}
       <div className="flex flex-col gap-2 p-4">
-        <div className="h-[57px] w-[223px] flex items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-              <span className="text-primary-foreground font-semibold text-lg">M</span>
-            </div>
-            <span className="text-xl font-semibold text-foreground">MNEE PAY</span>
+        <div className="flex items-start justify-between w-full">
+          <div className="h-[57px] w-[134px] relative">
+            <Image
+              src={logoImage}
+              alt="MNEE PAY"
+              fill
+              className="object-contain object-left"
+              priority
+            />
           </div>
+          <Badge
+            variant="secondary"
+            className="h-6 px-2.5 py-1 bg-amber-50 text-muted-foreground border-0 rounded-lg hover:bg-amber-50"
+          >
+            Beta
+          </Badge>
         </div>
       </div>
 
