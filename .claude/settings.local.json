@@ -15,7 +15,11 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(mkdir:*)",
+      "Bash(pnpm tsc:*)",
+      "Bash(/tmp/issue_body.txt)",
+      "Bash(pnpm run generate:api:*)"
     ],
     "deny": [],
     "ask": []

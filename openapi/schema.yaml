@@ -377,6 +377,7 @@ components:
         - storefrontId
         - type
         - method
+        - displayType
         - amount
         - currency
         - status
@@ -396,6 +397,14 @@ components:
             - stablecoin
             - payout
             - adjustment
+        displayType:
+          type: string
+          enum:
+            - send
+            - receive
+            - buy
+            - sell
+            - swap
         amount:
           type: number
           format: double
@@ -406,6 +415,12 @@ components:
         createdAt:
           type: string
           format: date-time
+        customerEmail:
+          type: string
+        sendHash:
+          type: string
+        rockWalletId:
+          type: string
         txHashIn:
           type: string
         txHashSwap:
@@ -445,8 +460,9 @@ components:
         kind:
           type: string
           enum:
-            - checkout
-            - payment_link
+            - paywall
+            - e-commerce
+            - donation
         storefrontId:
           type: string
         codeSnippet:
@@ -472,8 +488,9 @@ components:
         kind:
           type: string
           enum:
-            - checkout
-            - payment_link
+            - paywall
+            - e-commerce
+            - donation
         storefrontId:
           type: string
         codeSnippet:
@@ -556,5 +573,6 @@ components:
           $ref: '#/components/schemas/User'
         org:
           $ref: '#/components/schemas/Org'
+
 
 

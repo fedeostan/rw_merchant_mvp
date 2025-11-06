@@ -3,6 +3,15 @@
  * Do not edit manually.
  * Merchant Crypto Wallet Dashboard API
  * MVP API contract for merchant crypto wallet dashboard
+
+## Authentication
+This API uses Supabase Auth for authentication. Users authenticate via OTP (One-Time Password)
+sent to their email. The authentication flow is handled directly by Supabase Auth client,
+not through these API endpoints.
+
+For protected endpoints, include the Supabase session access token in the Authorization header:
+`Authorization: Bearer <supabase_access_token>`
+
  * OpenAPI spec version: 0.1.0
  */
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -42,7 +51,11 @@ import { customInstance } from ".././fetcher";
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
- * @summary Send OTP to email
+ * **DEPRECATED:** This endpoint is no longer used. Authentication is now handled
+directly by Supabase Auth client using `supabase.auth.signInWithOtp()`.
+
+ * @deprecated
+ * @summary Send OTP to email (DEPRECATED)
  */
 export const postAuthOtpSend = (
   postAuthOtpSendBody: PostAuthOtpSendBody,
@@ -106,7 +119,8 @@ export type PostAuthOtpSendMutationBody = PostAuthOtpSendBody;
 export type PostAuthOtpSendMutationError = unknown;
 
 /**
- * @summary Send OTP to email
+ * @deprecated
+ * @summary Send OTP to email (DEPRECATED)
  */
 export const usePostAuthOtpSend = <TError = unknown, TContext = unknown>(
   options?: {
@@ -130,7 +144,11 @@ export const usePostAuthOtpSend = <TError = unknown, TContext = unknown>(
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * @summary Verify OTP and authenticate
+ * **DEPRECATED:** This endpoint is no longer used. OTP verification is now handled
+directly by Supabase Auth client using `supabase.auth.verifyOtp()`.
+
+ * @deprecated
+ * @summary Verify OTP and authenticate (DEPRECATED)
  */
 export const postAuthOtpVerify = (
   postAuthOtpVerifyBody: PostAuthOtpVerifyBody,
@@ -194,7 +212,8 @@ export type PostAuthOtpVerifyMutationBody = PostAuthOtpVerifyBody;
 export type PostAuthOtpVerifyMutationError = unknown;
 
 /**
- * @summary Verify OTP and authenticate
+ * @deprecated
+ * @summary Verify OTP and authenticate (DEPRECATED)
  */
 export const usePostAuthOtpVerify = <TError = unknown, TContext = unknown>(
   options?: {

@@ -7,6 +7,13 @@ export const transactionMethodSchema = z.enum([
   "payout",
   "adjustment",
 ]);
+export const transactionDisplayTypeSchema = z.enum([
+  "receive",
+  "send",
+  "buy",
+  "sell",
+  "swap",
+]);
 
 export const transactionSchema = z.object({
   id: z.string(),
@@ -14,6 +21,7 @@ export const transactionSchema = z.object({
   moduleId: z.string().optional(),
   type: transactionTypeSchema,
   method: transactionMethodSchema,
+  displayType: transactionDisplayTypeSchema,
   amount: z.number(),
   currency: z.string(),
   status: transactionStatusSchema,
@@ -22,6 +30,9 @@ export const transactionSchema = z.object({
   txHashSwap: z.string().optional(),
   feeUsd: z.number().optional(),
   customerAddress: z.string().optional(),
+  customerEmail: z.string().optional(),
+  sendHash: z.string().optional(),
+  rockWalletId: z.string().optional(),
 });
 
 export type Transaction = z.infer<typeof transactionSchema>;
@@ -32,5 +43,6 @@ export const transactionsResponseSchema = z.object({
 });
 
 export type TransactionsResponse = z.infer<typeof transactionsResponseSchema>;
+
 
 

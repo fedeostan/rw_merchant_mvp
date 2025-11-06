@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const moduleKindSchema = z.enum(["checkout", "payment_link"]);
+export const moduleKindSchema = z.enum(["paywall", "e-commerce", "donation"]);
 export const moduleStatusSchema = z.enum(["active", "inactive"]);
 
 export const moduleSchema = z.object({
@@ -33,5 +33,6 @@ export const updateModuleRequestSchema = z.object({
 });
 
 export type UpdateModuleRequest = z.infer<typeof updateModuleRequestSchema>;
+
 
 

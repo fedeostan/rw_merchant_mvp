@@ -14,15 +14,15 @@ For protected endpoints, include the Supabase session access token in the Author
 
  * OpenAPI spec version: 0.1.0
  */
-import type { ModuleKind } from "./moduleKind";
-import type { ModuleStatus } from "./moduleStatus";
 
-export interface Module {
-  id: string;
-  name: string;
-  kind: ModuleKind;
-  storefrontId: string;
-  codeSnippet: string;
-  status: ModuleStatus;
-  imageUrl?: string;
-}
+export type TransactionDisplayType =
+  (typeof TransactionDisplayType)[keyof typeof TransactionDisplayType];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const TransactionDisplayType = {
+  send: "send",
+  receive: "receive",
+  buy: "buy",
+  sell: "sell",
+  swap: "swap",
+} as const;
