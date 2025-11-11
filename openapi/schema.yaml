@@ -209,6 +209,30 @@ paths:
                 $ref: '#/components/schemas/Module'
 
   /orgs/{orgId}/modules/{moduleId}:
+    get:
+      summary: Get a single module
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: moduleId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Module details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Module'
+        '404':
+          description: Module not found
     patch:
       summary: Update a module
       security:
@@ -237,6 +261,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Module'
+        '404':
+          description: Module not found
+    delete:
+      summary: Delete a module
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: moduleId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Module deleted successfully
+        '404':
+          description: Module not found
 
   /orgs/{orgId}/apikeys:
     get:
@@ -450,8 +496,8 @@ components:
         - name
         - kind
         - storefrontId
-        - codeSnippet
         - status
+        - configuration
       properties:
         id:
           type: string
@@ -465,13 +511,17 @@ components:
             - donation
         storefrontId:
           type: string
-        codeSnippet:
-          type: string
         status:
           type: string
           enum:
             - active
             - inactive
+        configuration:
+          type: object
+          description: Module configuration object containing checkout settings
+        codeSnippet:
+          type: string
+          description: Generated code snippet for embedding
         imageUrl:
           type: string
 
@@ -481,7 +531,7 @@ components:
         - name
         - kind
         - storefrontId
-        - codeSnippet
+        - configuration
       properties:
         name:
           type: string
@@ -493,8 +543,9 @@ components:
             - donation
         storefrontId:
           type: string
-        codeSnippet:
-          type: string
+        configuration:
+          type: object
+          description: Module configuration object containing checkout settings
         imageUrl:
           type: string
 
@@ -503,8 +554,9 @@ components:
       properties:
         name:
           type: string
-        codeSnippet:
-          type: string
+        configuration:
+          type: object
+          description: Module configuration object containing checkout settings
         status:
           type: string
           enum:
@@ -573,6 +625,8 @@ components:
           $ref: '#/components/schemas/User'
         org:
           $ref: '#/components/schemas/Org'
+
+
 
 
 

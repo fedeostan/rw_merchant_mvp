@@ -1164,6 +1164,189 @@ export const usePostOrgsOrgIdModules = <TError = unknown, TContext = unknown>(
   return useMutation(mutationOptions, queryClient);
 };
 /**
+ * @summary Get a single module
+ */
+export const getOrgsOrgIdModulesModuleId = (
+  orgId: string,
+  moduleId: string,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<Module>(
+    { url: `/orgs/${orgId}/modules/${moduleId}`, method: "GET", signal },
+    options
+  );
+};
+
+export const getGetOrgsOrgIdModulesModuleIdQueryKey = (
+  orgId?: string,
+  moduleId?: string
+) => {
+  return [`/orgs/${orgId}/modules/${moduleId}`] as const;
+};
+
+export const getGetOrgsOrgIdModulesModuleIdQueryOptions = <
+  TData = Awaited<ReturnType<typeof getOrgsOrgIdModulesModuleId>>,
+  TError = void,
+>(
+  orgId: string,
+  moduleId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getOrgsOrgIdModulesModuleId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getGetOrgsOrgIdModulesModuleIdQueryKey(orgId, moduleId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getOrgsOrgIdModulesModuleId>>
+  > = ({ signal }) =>
+    getOrgsOrgIdModulesModuleId(orgId, moduleId, requestOptions, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!(orgId && moduleId),
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getOrgsOrgIdModulesModuleId>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetOrgsOrgIdModulesModuleIdQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getOrgsOrgIdModulesModuleId>>
+>;
+export type GetOrgsOrgIdModulesModuleIdQueryError = void;
+
+export function useGetOrgsOrgIdModulesModuleId<
+  TData = Awaited<ReturnType<typeof getOrgsOrgIdModulesModuleId>>,
+  TError = void,
+>(
+  orgId: string,
+  moduleId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getOrgsOrgIdModulesModuleId>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrgsOrgIdModulesModuleId>>,
+          TError,
+          Awaited<ReturnType<typeof getOrgsOrgIdModulesModuleId>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetOrgsOrgIdModulesModuleId<
+  TData = Awaited<ReturnType<typeof getOrgsOrgIdModulesModuleId>>,
+  TError = void,
+>(
+  orgId: string,
+  moduleId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getOrgsOrgIdModulesModuleId>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrgsOrgIdModulesModuleId>>,
+          TError,
+          Awaited<ReturnType<typeof getOrgsOrgIdModulesModuleId>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetOrgsOrgIdModulesModuleId<
+  TData = Awaited<ReturnType<typeof getOrgsOrgIdModulesModuleId>>,
+  TError = void,
+>(
+  orgId: string,
+  moduleId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getOrgsOrgIdModulesModuleId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get a single module
+ */
+
+export function useGetOrgsOrgIdModulesModuleId<
+  TData = Awaited<ReturnType<typeof getOrgsOrgIdModulesModuleId>>,
+  TError = void,
+>(
+  orgId: string,
+  moduleId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getOrgsOrgIdModulesModuleId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetOrgsOrgIdModulesModuleIdQueryOptions(
+    orgId,
+    moduleId,
+    options
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
  * @summary Update a module
  */
 export const patchOrgsOrgIdModulesModuleId = (
@@ -1184,7 +1367,7 @@ export const patchOrgsOrgIdModulesModuleId = (
 };
 
 export const getPatchOrgsOrgIdModulesModuleIdMutationOptions = <
-  TError = unknown,
+  TError = void,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -1225,13 +1408,13 @@ export type PatchOrgsOrgIdModulesModuleIdMutationResult = NonNullable<
   Awaited<ReturnType<typeof patchOrgsOrgIdModulesModuleId>>
 >;
 export type PatchOrgsOrgIdModulesModuleIdMutationBody = UpdateModuleRequest;
-export type PatchOrgsOrgIdModulesModuleIdMutationError = unknown;
+export type PatchOrgsOrgIdModulesModuleIdMutationError = void;
 
 /**
  * @summary Update a module
  */
 export const usePatchOrgsOrgIdModulesModuleId = <
-  TError = unknown,
+  TError = void,
   TContext = unknown,
 >(
   options?: {
@@ -1252,6 +1435,92 @@ export const usePatchOrgsOrgIdModulesModuleId = <
 > => {
   const mutationOptions =
     getPatchOrgsOrgIdModulesModuleIdMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary Delete a module
+ */
+export const deleteOrgsOrgIdModulesModuleId = (
+  orgId: string,
+  moduleId: string,
+  options?: SecondParameter<typeof customInstance>
+) => {
+  return customInstance<void>(
+    { url: `/orgs/${orgId}/modules/${moduleId}`, method: "DELETE" },
+    options
+  );
+};
+
+export const getDeleteOrgsOrgIdModulesModuleIdMutationOptions = <
+  TError = void,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteOrgsOrgIdModulesModuleId>>,
+    TError,
+    { orgId: string; moduleId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteOrgsOrgIdModulesModuleId>>,
+  TError,
+  { orgId: string; moduleId: string },
+  TContext
+> => {
+  const mutationKey = ["deleteOrgsOrgIdModulesModuleId"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteOrgsOrgIdModulesModuleId>>,
+    { orgId: string; moduleId: string }
+  > = (props) => {
+    const { orgId, moduleId } = props ?? {};
+
+    return deleteOrgsOrgIdModulesModuleId(orgId, moduleId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteOrgsOrgIdModulesModuleIdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteOrgsOrgIdModulesModuleId>>
+>;
+
+export type DeleteOrgsOrgIdModulesModuleIdMutationError = void;
+
+/**
+ * @summary Delete a module
+ */
+export const useDeleteOrgsOrgIdModulesModuleId = <
+  TError = void,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteOrgsOrgIdModulesModuleId>>,
+      TError,
+      { orgId: string; moduleId: string },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteOrgsOrgIdModulesModuleId>>,
+  TError,
+  { orgId: string; moduleId: string },
+  TContext
+> => {
+  const mutationOptions =
+    getDeleteOrgsOrgIdModulesModuleIdMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };

@@ -4,21 +4,15 @@ import {
   mockOrg,
   mockStorefront,
   mockTransactions,
-  mockModules,
   mockApiKeys,
-  MOCK_ORG_ID,
 } from "./seed";
 import type {
   MoneyBalance,
   TransactionsResponse,
   ApiKeysResponse,
-  Module,
-  CreateModuleRequest,
-  UpdateModuleRequest,
 } from "@/lib/schemas";
 
 // In-memory state for mutations
-let modules = [...mockModules];
 let apiKeys = [...mockApiKeys];
 
 export const handlers = [
@@ -31,16 +25,16 @@ export const handlers = [
     });
   }),
 
-  // Storefronts
-  http.get(`*/api/orgs/${MOCK_ORG_ID}/storefronts`, () => {
-    console.log(`[MSW] Handling: GET /api/orgs/${MOCK_ORG_ID}/storefronts`);
+  // Storefronts - support any org ID
+  http.get("*/api/orgs/:orgId/storefronts", ({ params }) => {
+    console.log(`[MSW] Handling: GET /api/orgs/${params.orgId}/storefronts`);
     return HttpResponse.json([mockStorefront]);
   }),
 
-  // Balance
-  http.get(`*/api/orgs/${MOCK_ORG_ID}/storefronts/:sfId/balance`, () => {
+  // Balance - support any org ID
+  http.get("*/api/orgs/:orgId/storefronts/:sfId/balance", ({ params }) => {
     console.log(
-      `[MSW] Handling: GET /api/orgs/${MOCK_ORG_ID}/storefronts/:sfId/balance`
+      `[MSW] Handling: GET /api/orgs/${params.orgId}/storefronts/${params.sfId}/balance`
     );
     const balance: MoneyBalance = {
       storefrontId: "sf_1",
@@ -107,8 +101,9 @@ export const handlers = [
     });
   }),
 
-  // Transactions
-  http.get(`*/api/orgs/${MOCK_ORG_ID}/transactions`, ({ request }) => {
+  // Transactions - support any org ID
+  http.get("*/api/orgs/:orgId/transactions", ({ params, request }) => {
+    console.log(`[MSW] Handling: GET /api/orgs/${params.orgId}/transactions`);
     const url = new URL(request.url);
     const storefrontId = url.searchParams.get("storefrontId");
     const type = url.searchParams.get("type");
@@ -141,47 +136,38 @@ export const handlers = [
     return HttpResponse.json(response);
   }),
 
-  // Modules
-  http.get(`*/api/orgs/${MOCK_ORG_ID}/modules`, () => {
-    return HttpResponse.json(modules);
-  }),
+  // ============================================================================
+  // MODULES ENDPOINTS - NOT MOCKED (Bypass MSW)
+  // ============================================================================
+  // Module endpoints are NOT intercepted by MSW. They hit the real Next.js API
+  // routes which persist data to Supabase database:
+  //
+  // API Routes:
+  //   - src/app/api/orgs/[orgId]/modules/route.ts (GET, POST)
+  //   - src/app/api/orgs/[orgId]/modules/[moduleId]/route.ts (GET, PATCH, DELETE)
+  //
+  // These routes:
+  //   - Use Supabase server client for database operations
+  //   - Include authentication and authorization checks
+  //   - Enforce RLS policies for data security
+  //   - Generate code snippets via generateCodeSnippet()
+  //   - Persist all changes to the 'modules' table
+  //
+  // Requests to /api/orgs/:orgId/modules/* will pass through MSW and hit the
+  // real API, ensuring data persists across page refreshes.
+  // ============================================================================
 
-  http.post(`*/api/orgs/${MOCK_ORG_ID}/modules`, async ({ request }) => {
-    const body = (await request.json()) as CreateModuleRequest;
-    const newModule: Module = {
-      id: `module_${modules.length + 1}`,
-      ...body,
-      status: "active",
-    };
-    modules.push(newModule);
-    return HttpResponse.json(newModule);
-  }),
-
-  http.patch(
-    `*/api/orgs/${MOCK_ORG_ID}/modules/:moduleId`,
-    async ({ params, request }) => {
-      const { moduleId } = params;
-      const body = (await request.json()) as UpdateModuleRequest;
-      const index = modules.findIndex((m) => m.id === moduleId);
-
-      if (index === -1) {
-        return HttpResponse.json(null, { status: 404 });
-      }
-
-      modules[index] = { ...modules[index], ...body };
-      return HttpResponse.json(modules[index]);
-    }
-  ),
-
-  // API Keys
-  http.get(`*/api/orgs/${MOCK_ORG_ID}/apikeys`, () => {
+  // API Keys - support any org ID
+  http.get("*/api/orgs/:orgId/apikeys", ({ params }) => {
+    console.log(`[MSW] Handling: GET /api/orgs/${params.orgId}/apikeys`);
     const response: ApiKeysResponse = {
       items: apiKeys,
     };
     return HttpResponse.json(response);
   }),
 
-  http.post(`*/api/orgs/${MOCK_ORG_ID}/apikeys`, () => {
+  http.post("*/api/orgs/:orgId/apikeys", ({ params }) => {
+    console.log(`[MSW] Handling: POST /api/orgs/${params.orgId}/apikeys`);
     const newKey = {
       id: `key_${apiKeys.length + 1}`,
       last4: `${Math.floor(Math.random() * 10000)}`.padStart(4, "0"),

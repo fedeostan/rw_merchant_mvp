@@ -1,8 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Wallet, CreditCard, Wrench, LogOut, ChevronUp } from "lucide-react";
+import {
+  Wallet,
+  CreditCard,
+  Wrench,
+  LogOut,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -20,16 +28,38 @@ const navItems = [
     href: "/dashboard/transactions",
     icon: CreditCard,
   },
+];
+
+const merchantToolsSubItems = [
   {
-    name: "Merchant Tools",
-    href: "/dashboard/merchant-tools",
-    icon: Wrench,
+    name: "Getting started",
+    href: "/dashboard/merchant-tools/getting-started",
+  },
+  {
+    name: "API documentation",
+    href: "/dashboard/merchant-tools/api-documentation",
+  },
+  {
+    name: "Modules",
+    href: "/dashboard/merchant-tools/modules",
+  },
+  {
+    name: "Examples",
+    href: "/dashboard/merchant-tools/examples",
+  },
+  {
+    name: "Styles & theming",
+    href: "/dashboard/merchant-tools/styles-and-theming",
   },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const { user, signOut } = useAuth();
+  const [isMerchantToolsExpanded, setIsMerchantToolsExpanded] = useState(false);
+
+  // Check if we're on any merchant tools page
+  const isMerchantToolsActive = pathname.startsWith("/dashboard/merchant-tools");
 
   return (
     <div className="fixed left-0 top-0 h-screen w-[277px] bg-sidebar flex flex-col">
@@ -77,14 +107,62 @@ export function Sidebar() {
                   <span className="text-sm font-normal text-foreground">
                     {item.name}
                   </span>
-                  {item.name === "Merchant Tools" && (
-                    <div className="flex-1 flex justify-end">
-                      <ChevronUp className="w-4 h-4 text-foreground" />
-                    </div>
-                  )}
                 </Link>
               );
             })}
+
+            {/* Merchant Tools - Expandable Section */}
+            <div className="flex flex-col gap-1">
+              <button
+                onClick={() => setIsMerchantToolsExpanded(!isMerchantToolsExpanded)}
+                className={cn(
+                  "flex items-center gap-2 h-8 px-2 rounded-md transition-colors",
+                  isMerchantToolsActive
+                    ? "bg-card border border-border"
+                    : "hover:bg-card/50"
+                )}
+              >
+                <Wrench className="w-4 h-4 text-foreground" />
+                <span className="text-sm font-normal text-foreground">
+                  Merchant tools
+                </span>
+                <div className="flex-1 flex justify-end">
+                  {isMerchantToolsExpanded ? (
+                    <ChevronDown className="w-4 h-4 text-foreground transition-transform" />
+                  ) : (
+                    <ChevronUp className="w-4 h-4 text-foreground transition-transform" />
+                  )}
+                </div>
+              </button>
+
+              {/* Sub-navigation - Expandable */}
+              {isMerchantToolsExpanded && (
+                <div className="flex px-3.5">
+                  <div className="flex-1 flex flex-col gap-2 border-l border-sidebar-border pl-2.5 py-0.5">
+                    {merchantToolsSubItems.map((subItem) => {
+                      const isSubActive = pathname === subItem.href;
+
+                      return (
+                        <Link
+                          key={subItem.href}
+                          href={subItem.href}
+                          className={cn(
+                            "flex items-center gap-2 h-7 px-2 rounded-md transition-colors",
+                            isSubActive
+                              ? "bg-card border border-border"
+                              : "hover:bg-card/50"
+                          )}
+                        >
+                          <span className="text-sm font-normal text-foreground">
+                            {subItem.name}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
           </nav>
         </div>
 

@@ -19,7 +19,9 @@
       "Bash(mkdir:*)",
       "Bash(pnpm tsc:*)",
       "Bash(/tmp/issue_body.txt)",
-      "Bash(pnpm run generate:api:*)"
+      "Bash(pnpm run generate:api:*)",
+      "Bash(curl:*)",
+      "Bash(npx shadcn@latest add:*)"
     ],
     "deny": [],
     "ask": []

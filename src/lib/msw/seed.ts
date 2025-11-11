@@ -1,4 +1,4 @@
-import type { Storefront, Transaction, Module, ApiKey, User, Org } from "@/lib/schemas";
+import type { Storefront, Transaction, ApiKey, User, Org } from "@/lib/schemas";
 
 export const MOCK_ORG_ID = "org_1";
 
@@ -116,89 +116,8 @@ export const generateMockTransactions = (count: number): Transaction[] => {
 
 export const mockTransactions = generateMockTransactions(100);
 
-export const mockModules: Module[] = [
-  {
-    id: "module_1",
-    name: "Store One",
-    kind: "e-commerce",
-    storefrontId: "sf_1",
-    codeSnippet: '<div id="ecommerce-widget" data-module-id="module_1"></div>',
-    status: "active",
-    imageUrl: undefined,
-  },
-  {
-    id: "module_2",
-    name: "Premium Content",
-    kind: "paywall",
-    storefrontId: "sf_1",
-    codeSnippet: '<div id="paywall-widget" data-module-id="module_2"></div>',
-    status: "active",
-    imageUrl: undefined,
-  },
-  {
-    id: "module_3",
-    name: "Charity Campaign",
-    kind: "donation",
-    storefrontId: "sf_1",
-    codeSnippet: '<div id="donation-widget" data-module-id="module_3"></div>',
-    status: "active",
-    imageUrl: undefined,
-  },
-  {
-    id: "module_4",
-    name: "Kids Fighting Cancer",
-    kind: "donation",
-    storefrontId: "sf_1",
-    codeSnippet: '<div id="donation-widget" data-module-id="module_4"></div>',
-    status: "active",
-    imageUrl: undefined,
-  },
-  {
-    id: "module_5",
-    name: "Starbucks",
-    kind: "e-commerce",
-    storefrontId: "sf_1",
-    codeSnippet: '<div id="ecommerce-widget" data-module-id="module_5"></div>',
-    status: "active",
-    imageUrl: undefined,
-  },
-  {
-    id: "module_6",
-    name: "News Subscription",
-    kind: "paywall",
-    storefrontId: "sf_1",
-    codeSnippet: '<div id="paywall-widget" data-module-id="module_6"></div>',
-    status: "active",
-    imageUrl: undefined,
-  },
-  {
-    id: "module_7",
-    name: "Magazine Paywall",
-    kind: "paywall",
-    storefrontId: "sf_1",
-    codeSnippet: '<div id="paywall-widget" data-module-id="module_7"></div>',
-    status: "active",
-    imageUrl: undefined,
-  },
-  {
-    id: "module_8",
-    name: "Online Store",
-    kind: "e-commerce",
-    storefrontId: "sf_1",
-    codeSnippet: '<div id="ecommerce-widget" data-module-id="module_8"></div>',
-    status: "active",
-    imageUrl: undefined,
-  },
-  {
-    id: "module_9",
-    name: "Wildlife Fund",
-    kind: "donation",
-    storefrontId: "sf_1",
-    codeSnippet: '<div id="donation-widget" data-module-id="module_9"></div>',
-    status: "inactive",
-    imageUrl: undefined,
-  },
-];
+// NOTE: Modules are now stored in Supabase database, not MSW mocks
+// Mock modules have been removed. Use the real API endpoints for modules.
 
 export const generateMockApiKeys = (): ApiKey[] => {
   const keys: ApiKey[] = [];
@@ -217,6 +136,8 @@ export const generateMockApiKeys = (): ApiKey[] => {
 };
 
 export const mockApiKeys = generateMockApiKeys();
+
+
 
 
 

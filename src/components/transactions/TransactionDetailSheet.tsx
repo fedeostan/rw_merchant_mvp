@@ -2,7 +2,7 @@
 
 import { ExternalLink } from "lucide-react";
 import type { Transaction } from "@/lib/schemas/transaction";
-import type { Module } from "@/lib/schemas/module";
+import type { Module } from "@/lib/api/generated/schemas";
 import {
   Sheet,
   SheetContent,

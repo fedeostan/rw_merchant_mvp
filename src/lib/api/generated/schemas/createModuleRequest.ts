@@ -15,11 +15,13 @@ For protected endpoints, include the Supabase session access token in the Author
  * OpenAPI spec version: 0.1.0
  */
 import type { CreateModuleRequestKind } from "./createModuleRequestKind";
+import type { CreateModuleRequestConfiguration } from "./createModuleRequestConfiguration";
 
 export interface CreateModuleRequest {
   name: string;
   kind: CreateModuleRequestKind;
   storefrontId: string;
-  codeSnippet: string;
+  /** Module configuration object containing checkout settings */
+  configuration: CreateModuleRequestConfiguration;
   imageUrl?: string;
 }

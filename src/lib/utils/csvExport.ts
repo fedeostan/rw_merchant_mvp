@@ -1,5 +1,5 @@
 import { Transaction } from '@/lib/schemas/transaction';
-import { Module } from '@/lib/schemas/module';
+import type { Module } from '@/lib/api/generated/schemas';
 import { formatTransactionDate, formatTransactionAmount } from './transactionFormatters';
 
 /**

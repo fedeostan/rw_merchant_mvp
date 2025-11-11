@@ -1,17 +1,19 @@
 import { useGetOrgsOrgIdModules } from "@/lib/api/default/default";
 import { useAuth } from "@/hooks/useAuth";
+import { useOrg } from "@/hooks/useOrg";
 import { useMemo } from "react";
-import type { Module } from "@/lib/schemas/module";
-
-// TODO: Replace with dynamic orgId from useGetMe hook when integrated
-const DEFAULT_ORG_ID = "org_1";
+import type { Module } from "@/lib/api/generated/schemas/module";
 
 export function useModules() {
   const { isAuthenticated } = useAuth();
+  const { currentOrgId } = useOrg();
 
-  const query = useGetOrgsOrgIdModules(DEFAULT_ORG_ID, {
+  // Phase 3: Use organization ID from useOrg hook
+  const orgId = currentOrgId || "temp";
+
+  const query = useGetOrgsOrgIdModules(orgId, {
     query: {
-      enabled: isAuthenticated,
+      enabled: isAuthenticated && !!currentOrgId,
     },
   });
 

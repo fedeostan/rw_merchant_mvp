@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Module } from "@/lib/schemas/module";
+import type { Module } from "@/lib/api/generated/schemas";
 
 interface TransactionFiltersProps {
   modules: Module[];

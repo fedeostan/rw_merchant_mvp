@@ -11,7 +11,7 @@ import {
 import { useState } from "react";
 import { format } from "date-fns";
 import type { Transaction } from "@/lib/schemas/transaction";
-import type { Module } from "@/lib/schemas/module";
+import type { Module } from "@/lib/api/generated/schemas";
 import {
   Table,
   TableBody,

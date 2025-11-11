@@ -16,13 +16,17 @@ For protected endpoints, include the Supabase session access token in the Author
  */
 import type { ModuleKind } from "./moduleKind";
 import type { ModuleStatus } from "./moduleStatus";
+import type { ModuleConfiguration } from "./moduleConfiguration";
 
 export interface Module {
   id: string;
   name: string;
   kind: ModuleKind;
   storefrontId: string;
-  codeSnippet: string;
   status: ModuleStatus;
+  /** Module configuration object containing checkout settings */
+  configuration: ModuleConfiguration;
+  /** Generated code snippet for embedding */
+  codeSnippet?: string;
   imageUrl?: string;
 }

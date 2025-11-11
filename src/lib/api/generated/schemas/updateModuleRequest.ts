@@ -14,11 +14,13 @@ For protected endpoints, include the Supabase session access token in the Author
 
  * OpenAPI spec version: 0.1.0
  */
+import type { UpdateModuleRequestConfiguration } from "./updateModuleRequestConfiguration";
 import type { UpdateModuleRequestStatus } from "./updateModuleRequestStatus";
 
 export interface UpdateModuleRequest {
   name?: string;
-  codeSnippet?: string;
+  /** Module configuration object containing checkout settings */
+  configuration?: UpdateModuleRequestConfiguration;
   status?: UpdateModuleRequestStatus;
   imageUrl?: string;
 }
