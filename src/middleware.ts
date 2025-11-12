@@ -29,21 +29,30 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh session if expired - required for Server Components
+  // IMPORTANT: Use getUser() instead of getSession() in server code
+  // getUser() validates the JWT and refreshes it if needed
+  // getSession() just reads from storage without validation
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const isAuthPage = request.nextUrl.pathname === "/login";
+  const isSignupPage = request.nextUrl.pathname === "/signup";
   const isDashboard = request.nextUrl.pathname.startsWith("/dashboard");
 
   // Redirect authenticated users away from login page
-  if (isAuthPage && session) {
+  if (isAuthPage && user) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
+  // Allow signup page for both authenticated and unauthenticated users
+  // Authenticated users may be completing their profile
+  if (isSignupPage) {
+    return supabaseResponse;
+  }
+
   // Redirect unauthenticated users to login page
-  if (isDashboard && !session) {
+  if (isDashboard && !user) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

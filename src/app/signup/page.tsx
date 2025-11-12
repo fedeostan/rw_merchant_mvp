@@ -7,6 +7,7 @@ import { ProgressBar } from "@/components/auth/ProgressBar";
 import { EmailStep } from "@/components/auth/EmailStep";
 import { VerificationStep } from "@/components/auth/VerificationStep";
 import { ProfileStep } from "@/components/auth/ProfileStep";
+import { OrganizationOption } from "@/components/auth/OrganizationCombobox";
 import { Card, CardContent } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
@@ -20,7 +21,9 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [fullName, setFullName] = useState("");
-  const [businessName, setBusinessName] = useState("");
+  const [organization, setOrganization] = useState<OrganizationOption | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -93,6 +96,15 @@ export default function SignUpPage() {
       if (verifyError) {
         setError(verifyError.message);
       } else {
+        // Refresh the session to ensure JWT is properly set for subsequent requests
+        const { error: refreshError } = await supabase.auth.refreshSession();
+
+        if (refreshError) {
+          console.error("Session refresh error:", refreshError);
+          setError("Failed to establish session. Please try again.");
+          return;
+        }
+
         toast.success("Email verified successfully!");
         setStep("profile");
       }
@@ -108,7 +120,7 @@ export default function SignUpPage() {
     setError(null);
 
     try {
-      // Get current user
+      // Get current user and verify session
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -119,12 +131,21 @@ export default function SignUpPage() {
         return;
       }
 
+      // Log session info for debugging
+      console.log("User authenticated:", user.id);
+
+      if (!organization) {
+        setError("Please select or create an organization.");
+        setLoading(false);
+        return;
+      }
+
       // Update user profile with name and company
       const { error: profileError } = await supabase
         .from("profiles")
         .update({
           name: fullName,
-          company: businessName
+          company: organization.name,
         })
         .eq("id", user.id);
 
@@ -132,10 +153,84 @@ export default function SignUpPage() {
         throw profileError;
       }
 
+      // Handle organization: either create new or join existing
+      if (organization.isExisting && organization.id) {
+        // Join existing organization as member
+        const { error: memberError } = await supabase
+          .from("user_organizations")
+          .insert({
+            user_id: user.id,
+            org_id: organization.id,
+            role: "member",
+          });
+
+        if (memberError) {
+          throw memberError;
+        }
+
+        // Set as current organization
+        const { error: currentOrgError } = await supabase
+          .from("profiles")
+          .update({ current_org_id: organization.id })
+          .eq("id", user.id);
+
+        if (currentOrgError) {
+          throw currentOrgError;
+        }
+
+        toast.success(`Joined ${organization.name} successfully!`);
+      } else {
+        // Create new organization
+        // Note: owner_id is auto-set by database trigger to auth.uid()
+        console.log("About to create organization. User ID:", user.id);
+        const { data: newOrg, error: orgError } = await supabase
+          .from("organizations")
+          .insert({
+            name: organization.name,
+            // Don't set owner_id - let the trigger handle it
+          })
+          .select()
+          .single();
+
+        if (orgError) {
+          throw orgError;
+        }
+
+        // Add user as owner
+        const { error: ownerError } = await supabase
+          .from("user_organizations")
+          .insert({
+            user_id: user.id,
+            org_id: newOrg.id,
+            role: "owner",
+          });
+
+        if (ownerError) {
+          throw ownerError;
+        }
+
+        // Set as current organization
+        const { error: currentOrgError } = await supabase
+          .from("profiles")
+          .update({ current_org_id: newOrg.id })
+          .eq("id", user.id);
+
+        if (currentOrgError) {
+          throw currentOrgError;
+        }
+
+        toast.success(`Created ${organization.name} successfully!`);
+      }
+
       // Success! Redirect to dashboard
       router.push("/dashboard");
     } catch (err: any) {
-      console.error("Signup error:", err);
+      // Log full error details for debugging
+      console.error("Signup error - Full object:", JSON.stringify(err, null, 2));
+      console.error("Signup error - Message:", err?.message);
+      console.error("Signup error - Code:", err?.code);
+      console.error("Signup error - Details:", err?.details);
+      console.error("Signup error - Hint:", err?.hint);
       setError(
         err.message || "Failed to create account. Please try again."
       );
@@ -201,9 +296,9 @@ export default function SignUpPage() {
             {step === "profile" && (
               <ProfileStep
                 fullName={fullName}
-                businessName={businessName}
+                organization={organization}
                 onFullNameChange={setFullName}
-                onBusinessNameChange={setBusinessName}
+                onOrganizationChange={setOrganization}
                 onSubmit={handleProfileSubmit}
                 loading={loading}
                 error={error}

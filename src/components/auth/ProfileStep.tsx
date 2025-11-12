@@ -5,12 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  OrganizationCombobox,
+  OrganizationOption,
+} from "./OrganizationCombobox";
 
 interface ProfileStepProps {
   fullName: string;
-  businessName: string;
+  organization: OrganizationOption | null;
   onFullNameChange: (name: string) => void;
-  onBusinessNameChange: (name: string) => void;
+  onOrganizationChange: (org: OrganizationOption) => void;
   onSubmit: () => void;
   loading: boolean;
   error: string | null;
@@ -18,14 +22,14 @@ interface ProfileStepProps {
 
 export function ProfileStep({
   fullName,
-  businessName,
+  organization,
   onFullNameChange,
-  onBusinessNameChange,
+  onOrganizationChange,
   onSubmit,
   loading,
   error,
 }: ProfileStepProps) {
-  const isValid = fullName.trim() && businessName.trim();
+  const isValid = fullName.trim() && organization?.name.trim();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,15 +69,17 @@ export function ProfileStep({
 
         <div className="space-y-2">
           <Label htmlFor="businessName">Business name</Label>
-          <Input
-            id="businessName"
-            type="text"
-            placeholder="Enter your business name"
-            value={businessName}
-            onChange={(e) => onBusinessNameChange(e.target.value)}
+          <OrganizationCombobox
+            value={organization}
+            onChange={onOrganizationChange}
             disabled={loading}
-            required
+            placeholder="Search or create your organization..."
           />
+          {organization?.isExisting && (
+            <p className="text-xs text-slate-600">
+              You will join {organization.name} as a member
+            </p>
+          )}
         </div>
       </div>
 

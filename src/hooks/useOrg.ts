@@ -241,6 +241,43 @@ export function useOrg() {
     },
   });
 
+  // Mutation to join an existing organization
+  const joinOrganization = useMutation({
+    mutationFn: async (orgId: string) => {
+      if (!user?.id) throw new Error("User not authenticated");
+
+      // Add user as member to the organization
+      const { error: memberError } = await supabase
+        .from("user_organizations")
+        .insert({
+          user_id: user.id,
+          org_id: orgId,
+          role: "member",
+        });
+
+      if (memberError) throw memberError;
+
+      // Update user's current org to the one they just joined
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ current_org_id: orgId })
+        .eq("id", user.id);
+
+      if (profileError) throw profileError;
+
+      return orgId;
+    },
+    onSuccess: () => {
+      // Invalidate both current org and organizations list
+      queryClient.invalidateQueries({ queryKey: ["currentOrgId", user?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["organizations", user?.id],
+      });
+      // Invalidate modules query since org changed
+      queryClient.invalidateQueries({ queryKey: ["/orgs"] });
+    },
+  });
+
   return {
     // Current organization
     currentOrgId,
@@ -265,6 +302,9 @@ export function useOrg() {
 
     createOrganization: createOrganization.mutate,
     isCreating: createOrganization.isPending,
+
+    joinOrganization: joinOrganization.mutate,
+    isJoining: joinOrganization.isPending,
 
     updateOrganization: updateOrganization.mutate,
     isUpdating: updateOrganization.isPending,
