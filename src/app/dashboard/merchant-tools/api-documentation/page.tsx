@@ -202,21 +202,20 @@ export default function APIDocumentationPage() {
 
   return (
     <div className="flex flex-col gap-2.5 h-full pl-0 pr-2 py-2">
-      <div className="bg-card flex-1 flex flex-col rounded-xl shadow-sm">
-        <Breadcrumb
-          items={[
-            {
-              label: "Merchant tools",
-              icon: Wrench,
-            },
-            {
-              label: "API documentation",
-            },
-          ]}
-        />
+      <Breadcrumb
+        items={[
+          {
+            label: "Merchant tools",
+            icon: Wrench,
+          },
+          {
+            label: "API documentation",
+          },
+        ]}
+      />
 
-        <div className="flex-1 flex flex-col gap-6 px-0 py-6 overflow-y-auto">
-          <div className="flex flex-col gap-4 px-6">
+      <div className="flex-1 flex flex-col gap-6 px-0 py-6 overflow-y-auto">
+        <div className="flex flex-col gap-4 px-6">
             {/* Hero Section */}
             <div className="flex flex-col gap-2">
               <h1 className="text-3xl font-bold text-foreground">
@@ -350,7 +349,6 @@ export default function APIDocumentationPage() {
             />
           </div>
         </div>
-      </div>
     </div>
   );
 }
