@@ -22,7 +22,6 @@ export interface Module {
   id: string;
   name: string;
   kind: ModuleKind;
-  storefrontId: string;
   status: ModuleStatus;
   /** Module configuration object containing checkout settings */
   configuration: ModuleConfiguration;

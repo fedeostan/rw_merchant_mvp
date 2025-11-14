@@ -18,7 +18,7 @@ import type { TransactionType } from "./transactionType";
 import type { TransactionStatus } from "./transactionStatus";
 
 export type GetOrgsOrgIdTransactionsParams = {
-  storefrontId?: string;
+  moduleId?: string;
   type?: TransactionType;
   status?: TransactionStatus;
   cursor?: string;

@@ -20,7 +20,6 @@ import type { CreateModuleRequestConfiguration } from "./createModuleRequestConf
 export interface CreateModuleRequest {
   name: string;
   kind: CreateModuleRequestKind;
-  storefrontId: string;
   /** Module configuration object containing checkout settings */
   configuration: CreateModuleRequestConfiguration;
   imageUrl?: string;

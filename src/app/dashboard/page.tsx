@@ -21,7 +21,13 @@ export default function WalletPage() {
   const queryClient = useQueryClient();
 
   // Fetch wallet data
-  const { balance, isLoading: balanceLoading, error: balanceError, refresh: refreshBalance } = useWalletBalance("sf_1");
+  const {
+    balance,
+    isLoading: balanceLoading,
+    error: balanceError,
+    refresh: refreshBalance,
+    isPending: isWalletActionPending,
+  } = useWalletBalance();
   const { price, isLoading: priceLoading, error: priceError, refresh: refreshPrice } = useMneePrice();
 
   // Combined loading state
@@ -38,7 +44,7 @@ export default function WalletPage() {
 
       // Invalidate cache to ensure fresh data (this automatically triggers refetch for active queries)
       await queryClient.invalidateQueries({
-        queryKey: ['/orgs/org_1/storefronts/sf_1/balance'],
+        queryKey: ['orgBalance'],
         refetchType: 'active'
       });
       await queryClient.invalidateQueries({
@@ -84,10 +90,11 @@ export default function WalletPage() {
             {/* Balance Card */}
             <BalanceCard
               balance={balance?.available}
+              pendingBalance={balance?.pending}
               currency={balance?.currency}
               pricePerUnit={price?.price}
-              isLoading={isLoading}
-              isRefreshing={isRefreshing}
+              isLoading={isLoading || isWalletActionPending}
+              isRefreshing={isRefreshing || isWalletActionPending}
               refreshSuccess={refreshSuccess}
               error={(balanceError || priceError) as Error | null}
               onRefresh={handleRefresh}

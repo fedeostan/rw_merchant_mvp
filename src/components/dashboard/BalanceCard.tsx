@@ -8,6 +8,10 @@ interface BalanceCardProps {
    */
   balance?: number;
   /**
+   * Pending balance amount
+   */
+  pendingBalance?: number;
+  /**
    * Currency symbol (e.g., "MNEE", "USD")
    */
   currency?: string;
@@ -43,6 +47,7 @@ interface BalanceCardProps {
  */
 export function BalanceCard({
   balance,
+  pendingBalance,
   currency = "MNEE",
   pricePerUnit,
   isLoading = false,
@@ -93,7 +98,7 @@ export function BalanceCard({
             <Skeleton className="h-9 w-48" />
           ) : hasBalance ? (
             <h2 className="text-3xl font-semibold text-card-foreground leading-9">
-              ${balance?.toLocaleString(undefined, {
+              {balance?.toLocaleString(undefined, {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0,
               })} {currency}
@@ -136,7 +141,7 @@ export function BalanceCard({
           </span>
           <span>|</span>
           <span>
-            Amount:{" "}
+            Available:{" "}
             <span className="text-foreground">
               {balance?.toLocaleString(undefined, {
                 minimumFractionDigits: 0,
@@ -144,6 +149,20 @@ export function BalanceCard({
               })} {currency}
             </span>
           </span>
+          {pendingBalance !== undefined && pendingBalance !== 0 && (
+            <>
+              <span>|</span>
+              <span>
+                Pending:{" "}
+                <span className="text-foreground">
+                  {pendingBalance?.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })} {currency}
+                </span>
+              </span>
+            </>
+          )}
         </div>
       ) : null}
     </div>

@@ -84,39 +84,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/MeResponse'
 
-  /orgs/{orgId}/storefronts:
+  /orgs/{orgId}/balance:
     get:
-      summary: List storefronts for org
+      summary: Get balance for organization
+      description: |
+        Calculate organization balance from all transactions.
+        Available balance = SUM(amount WHERE type='in' AND status='posted') - SUM(amount WHERE type='out' AND status='posted')
+        Pending balance = SUM(amount WHERE type='in' AND status='pending') - SUM(amount WHERE type='out' AND status='pending')
       security:
         - bearerAuth: []
       parameters:
         - name: orgId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: List of storefronts
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Storefront'
-
-  /orgs/{orgId}/storefronts/{sfId}/balance:
-    get:
-      summary: Get balance for storefront
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: orgId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: sfId
           in: path
           required: true
           schema:
@@ -140,7 +118,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: storefrontId
+        - name: moduleId
           in: query
           schema:
             type: string
@@ -312,13 +290,248 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Optional label for the API key (e.g., "Production API")
       responses:
         '200':
-          description: Created API key
+          description: Created API key (full key is only shown once)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiKeyResponse'
+
+  /wallet/buy:
+    post:
+      summary: Buy MNEE and create transaction
+      description: |
+        Create an incoming transaction for buying MNEE with a payment method.
+        This will:
+        - Create a transaction with type='in', method='card', display_type='buy', status='posted'
+        - Assign to default "Wallet" module (creates if doesn't exist)
+        - Generate realistic mock blockchain hash (tx_hash_in)
+        - Return real transaction ID and full transaction details
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - paymentMethod
+              properties:
+                amount:
+                  type: number
+                  format: double
+                  description: Amount of MNEE to buy
+                paymentMethod:
+                  type: string
+                  description: Payment method used (e.g., "Visa ending in 1234")
+      responses:
+        '201':
+          description: Transaction created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  transactionId:
+                    type: string
+                  transaction:
+                    $ref: '#/components/schemas/Transaction'
+        '400':
+          description: Invalid request data
+        '401':
+          description: Unauthorized
+
+  /wallet/sell:
+    post:
+      summary: Sell MNEE and create transaction
+      description: |
+        Create an outgoing transaction for selling MNEE to bank account.
+        This will:
+        - **Validate sufficient balance** before allowing the transaction
+        - Create a transaction with type='out', method='bank', display_type='sell', status='posted'
+        - Assign to default "Wallet" module
+        - Return real transaction ID and full transaction details
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+              properties:
+                amount:
+                  type: number
+                  format: double
+                  description: Amount of MNEE to sell
+      responses:
+        '201':
+          description: Transaction created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  transactionId:
+                    type: string
+                  transaction:
+                    $ref: '#/components/schemas/Transaction'
+        '400':
+          description: Invalid request data or insufficient balance
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  details:
+                    type: object
+                    properties:
+                      requested:
+                        type: number
+                      available:
+                        type: number
+        '401':
+          description: Unauthorized
+
+  /wallet/send:
+    post:
+      summary: Send MNEE to another wallet
+      description: |
+        Create an outgoing transaction for sending MNEE to another wallet address.
+        This will:
+        - **Validate sufficient balance** before allowing the transaction
+        - Create a transaction with type='out', method='transfer', display_type='send', status='posted'
+        - Store recipient address in customer_address field
+        - Generate mock blockchain transaction hash (send_hash)
+        - Assign to default "Wallet" module
+        - Return real transaction ID, transaction details, and mock blockchain hash
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - recipient
+                - address
+              properties:
+                amount:
+                  type: number
+                  format: double
+                  description: Amount of MNEE to send
+                recipient:
+                  type: string
+                  description: Name or identifier of the recipient
+                address:
+                  type: string
+                  description: Wallet address of the recipient (Ethereum format)
+      responses:
+        '201':
+          description: Transaction created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  transactionId:
+                    type: string
+                  transaction:
+                    $ref: '#/components/schemas/Transaction'
+                  txHash:
+                    type: string
+                    description: Mock blockchain transaction hash (0x + 64 hex chars)
+        '400':
+          description: Invalid request data or insufficient balance
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  details:
+                    type: object
+                    properties:
+                      requested:
+                        type: number
+                      available:
+                        type: number
+        '401':
+          description: Unauthorized
+
+  /wallet/receive:
+    post:
+      summary: Generate wallet address and QR code for receiving MNEE
+      description: |
+        Generate a mock wallet address and QR code for receiving MNEE.
+        This will:
+        - Generate mock Ethereum wallet address (0x + 40 hex characters)
+        - Generate QR code as base64 data URL using the address
+        - If amount is provided, encode it in the QR code for payment request
+        - **Does NOT create a transaction** (transaction created when funds are actually received)
+        - Return wallet address and QR code data
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  format: double
+                  description: Optional amount for payment request QR code
+      responses:
+        '200':
+          description: Wallet address and QR code generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  address:
+                    type: string
+                    description: Mock Ethereum wallet address (0x + 40 hex chars)
+                  qrCode:
+                    type: string
+                    description: Base64 encoded QR code data URL
+                  amount:
+                    type: number
+                    description: Amount if provided in request
+        '400':
+          description: Invalid request data
+        '401':
+          description: Unauthorized
 
 components:
   securitySchemes:
@@ -359,28 +572,6 @@ components:
             - pending
             - rejected
 
-    Storefront:
-      type: object
-      required:
-        - id
-        - label
-        - type
-        - currency
-      properties:
-        id:
-          type: string
-        label:
-          type: string
-        type:
-          type: string
-          enum:
-            - CRYPTO
-            - USD_BANK
-        currency:
-          type: string
-        address:
-          type: string
-
     MoneyBalance:
       type: object
       required:
@@ -389,8 +580,6 @@ components:
         - pending
         - updatedAt
       properties:
-        storefrontId:
-          type: string
         currency:
           type: string
         available:
@@ -420,7 +609,7 @@ components:
       type: object
       required:
         - id
-        - storefrontId
+        - moduleId
         - type
         - method
         - displayType
@@ -430,8 +619,6 @@ components:
         - createdAt
       properties:
         id:
-          type: string
-        storefrontId:
           type: string
         moduleId:
           type: string
@@ -443,6 +630,9 @@ components:
             - stablecoin
             - payout
             - adjustment
+            - card
+            - bank
+            - transfer
         displayType:
           type: string
           enum:
@@ -495,7 +685,6 @@ components:
         - id
         - name
         - kind
-        - storefrontId
         - status
         - configuration
       properties:
@@ -509,8 +698,6 @@ components:
             - paywall
             - e-commerce
             - donation
-        storefrontId:
-          type: string
         status:
           type: string
           enum:
@@ -530,7 +717,6 @@ components:
       required:
         - name
         - kind
-        - storefrontId
         - configuration
       properties:
         name:
@@ -541,8 +727,6 @@ components:
             - paywall
             - e-commerce
             - donation
-        storefrontId:
-          type: string
         configuration:
           type: object
           description: Module configuration object containing checkout settings
@@ -577,9 +761,18 @@ components:
           type: string
         last4:
           type: string
+        name:
+          type: string
+          nullable: true
+          description: Optional label for the API key (e.g., "Production API")
         createdAt:
           type: string
           format: date-time
+        lastUsedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp when the API key was last used
         active:
           type: boolean
 
@@ -597,9 +790,27 @@ components:
       type: object
       required:
         - id
+        - key
+        - last4
+        - createdAt
+        - active
       properties:
         id:
           type: string
+        key:
+          type: string
+          description: Full API key - only shown once at creation time
+        last4:
+          type: string
+        name:
+          type: string
+          nullable: true
+          description: Optional label for the API key
+        createdAt:
+          type: string
+          format: date-time
+        active:
+          type: boolean
 
     AuthResponse:
       type: object
@@ -625,6 +836,7 @@ components:
           $ref: '#/components/schemas/User'
         org:
           $ref: '#/components/schemas/Org'
+
 
 
 

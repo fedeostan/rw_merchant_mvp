@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      apikeys: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          key_hash: string
+          last_used_at: string | null
+          last4: string
+          name: string | null
+          org_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          key_hash: string
+          last_used_at?: string | null
+          last4: string
+          name?: string | null
+          org_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          key_hash?: string
+          last_used_at?: string | null
+          last4?: string
+          name?: string | null
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apikeys_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       modules: {
         Row: {
           code_snippet: string | null
@@ -123,6 +164,77 @@ export type Database = {
           },
         ]
       }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          customer_address: string | null
+          customer_email: string | null
+          display_type: string
+          fee_usd: number | null
+          id: string
+          method: string
+          module_id: string
+          org_id: string
+          rock_wallet_id: string | null
+          send_hash: string | null
+          status: string
+          tx_hash_in: string | null
+          tx_hash_swap: string | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency: string
+          customer_address?: string | null
+          customer_email?: string | null
+          display_type: string
+          fee_usd?: number | null
+          id?: string
+          method: string
+          module_id: string
+          org_id: string
+          rock_wallet_id?: string | null
+          send_hash?: string | null
+          status: string
+          tx_hash_in?: string | null
+          tx_hash_swap?: string | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          customer_address?: string | null
+          customer_email?: string | null
+          display_type?: string
+          fee_usd?: number | null
+          id?: string
+          method?: string
+          module_id?: string
+          org_id?: string
+          rock_wallet_id?: string | null
+          send_hash?: string | null
+          status?: string
+          tx_hash_in?: string | null
+          tx_hash_swap?: string | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_organizations: {
         Row: {
           created_at: string
@@ -173,6 +285,15 @@ export type Database = {
       is_org_owner_or_admin: {
         Args: { check_org_id: string }
         Returns: boolean
+      }
+      search_organizations: {
+        Args: { result_limit?: number; search_term: string }
+        Returns: {
+          id: string
+          is_member: boolean
+          member_count: number
+          name: string
+        }[]
       }
     }
     Enums: {

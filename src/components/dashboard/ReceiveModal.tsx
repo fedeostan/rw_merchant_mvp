@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Copy, Check } from 'lucide-react';
-import QRCode from 'react-qr-code';
 import {
   Dialog,
   DialogContent,
@@ -12,25 +11,39 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useWalletBalance } from '@/hooks/useWalletBalance';
+import { toast } from 'sonner';
 
 interface ReceiveModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-// Generate a random wallet address for MVP
-const generateWalletAddress = () => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let address = '1L';
-  for (let i = 0; i < 32; i++) {
-    address += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return address;
-};
-
 export function ReceiveModal({ open, onOpenChange }: ReceiveModalProps) {
-  const [walletAddress] = useState(generateWalletAddress());
+  const [walletAddress, setWalletAddress] = useState<string>('');
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [copied, setCopied] = useState(false);
+  const { receiveMnee, isReceiving } = useWalletBalance();
+
+  // Generate wallet address and QR code when modal opens
+  useEffect(() => {
+    if (open && !walletAddress) {
+      const generateAddress = async () => {
+        try {
+          const result = await receiveMnee({ amount: undefined });
+          setWalletAddress(result.address);
+          setQrCodeDataUrl(result.qrCode);
+        } catch (error) {
+          toast.error("Failed to generate address", {
+            description: error instanceof Error ? error.message : "An unexpected error occurred",
+          });
+          onOpenChange(false);
+        }
+      };
+      generateAddress();
+    }
+  }, [open, walletAddress, receiveMnee, onOpenChange]);
 
   const handleCopy = async () => {
     try {
@@ -42,8 +55,18 @@ export function ReceiveModal({ open, onOpenChange }: ReceiveModalProps) {
     }
   };
 
+  const handleOpenChange = (newOpen: boolean) => {
+    onOpenChange(newOpen);
+    // Reset state when closing
+    if (!newOpen) {
+      setWalletAddress('');
+      setQrCodeDataUrl('');
+      setCopied(false);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className="sm:max-w-md
           data-[state=open]:animate-in data-[state=closed]:animate-out
@@ -64,39 +87,49 @@ export function ReceiveModal({ open, onOpenChange }: ReceiveModalProps) {
             <Label htmlFor="wallet-address" className="text-sm font-medium">
               Wallet address
             </Label>
-            <div className="flex gap-2">
-              <Input
-                id="wallet-address"
-                value={walletAddress}
-                readOnly
-                className="flex-1 font-mono text-sm"
-              />
-              <Button
-                type="button"
-                size="icon"
-                variant="outline"
-                onClick={handleCopy}
-                className="shrink-0"
-              >
-                {copied ? (
-                  <Check className="h-4 w-4 text-green-600" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-                <span className="sr-only">Copy wallet address</span>
-              </Button>
-            </div>
+            {isReceiving || !walletAddress ? (
+              <Skeleton className="h-9 w-full" />
+            ) : (
+              <div className="flex gap-2">
+                <Input
+                  id="wallet-address"
+                  value={walletAddress}
+                  readOnly
+                  className="flex-1 font-mono text-sm"
+                />
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  onClick={handleCopy}
+                  className="shrink-0"
+                >
+                  {copied ? (
+                    <Check className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                  <span className="sr-only">Copy wallet address</span>
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* QR Code Section */}
           <div className="flex justify-center py-4">
-            <div className="bg-white p-4 rounded-lg">
-              <QRCode
-                value={walletAddress}
-                size={200}
-                level="M"
-              />
-            </div>
+            {isReceiving || !qrCodeDataUrl ? (
+              <Skeleton className="h-[200px] w-[200px] rounded-lg" />
+            ) : (
+              <div className="bg-white p-4 rounded-lg">
+                <img
+                  src={qrCodeDataUrl}
+                  alt="Wallet QR Code"
+                  width={200}
+                  height={200}
+                  className="w-[200px] h-[200px]"
+                />
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>

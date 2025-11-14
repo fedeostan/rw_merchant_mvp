@@ -21,8 +21,7 @@ import type { TransactionStatus } from "./transactionStatus";
 
 export interface Transaction {
   id: string;
-  storefrontId: string;
-  moduleId?: string;
+  moduleId: string;
   type: TransactionType;
   method: TransactionMethod;
   displayType: TransactionDisplayType;

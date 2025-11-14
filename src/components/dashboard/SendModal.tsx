@@ -11,6 +11,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useWalletBalance } from '@/hooks/useWalletBalance';
+import { toast } from 'sonner';
 
 interface SendModalProps {
   open: boolean;
@@ -26,7 +28,8 @@ interface SendModalProps {
  * - Recipient address input with format validation
  * - Real-time error states with red borders
  * - Disabled/enabled Send button based on validation
- * - Loading state animation (no actual sending)
+ * - Real API integration with optimistic updates
+ * - Balance validation (insufficient balance errors)
  */
 export function SendModal({ open, onOpenChange }: SendModalProps) {
   // Form state
@@ -37,8 +40,8 @@ export function SendModal({ open, onOpenChange }: SendModalProps) {
   const [amountError, setAmountError] = useState<string | null>(null);
   const [addressError, setAddressError] = useState<string | null>(null);
 
-  // Loading state
-  const [isSending, setIsSending] = useState(false);
+  // Wallet actions
+  const { sendMnee, isSending, balance } = useWalletBalance();
 
   /**
    * Validates the amount input
@@ -47,6 +50,7 @@ export function SendModal({ open, onOpenChange }: SendModalProps) {
    * - Must be a positive number
    * - Can only contain digits and one decimal point
    * - No special characters
+   * - Must not exceed available balance
    */
   const validateAmount = (value: string): string | null => {
     if (!value.trim()) {
@@ -61,6 +65,11 @@ export function SendModal({ open, onOpenChange }: SendModalProps) {
     const num = parseFloat(value);
     if (isNaN(num) || num <= 0) {
       return 'Enter a valid amount.';
+    }
+
+    // Check if user has sufficient balance
+    if (balance && balance.available < num) {
+      return `Insufficient balance. Available: ${balance.available} MNEE`;
     }
 
     return null;
@@ -157,7 +166,7 @@ export function SendModal({ open, onOpenChange }: SendModalProps) {
 
   /**
    * Handles the Send button click
-   * Shows loading animation but doesn't actually send (MVP requirement)
+   * Creates a real transaction via the API
    */
   const handleSend = async () => {
     // Validate form first
@@ -165,17 +174,27 @@ export function SendModal({ open, onOpenChange }: SendModalProps) {
       return;
     }
 
-    // Show loading state
-    setIsSending(true);
+    try {
+      // Call the API to send MNEE
+      await sendMnee({
+        amount: parseFloat(amount),
+        recipient: recipientAddress,
+        address: recipientAddress,
+      });
 
-    // Simulate sending delay (2 seconds)
-    await new Promise(resolve => setTimeout(resolve, 2000));
+      // Show success toast
+      toast.success("MNEE sent successfully", {
+        description: `Sent ${amount} MNEE to ${recipientAddress.slice(0, 10)}...`,
+      });
 
-    // Hide loading state
-    setIsSending(false);
-
-    // Note: No actual sending happens per requirements
-    console.log('Send clicked (no actual action):', { amount, recipientAddress });
+      // Close modal on success
+      onOpenChange(false);
+    } catch (error) {
+      // Show error toast
+      toast.error("Failed to send MNEE", {
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+      });
+    }
   };
 
   /**
@@ -190,7 +209,6 @@ export function SendModal({ open, onOpenChange }: SendModalProps) {
       setRecipientAddress('');
       setAmountError(null);
       setAddressError(null);
-      setIsSending(false);
     }
   };
 

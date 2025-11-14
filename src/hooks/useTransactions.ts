@@ -2,11 +2,9 @@ import { useGetOrgsOrgIdTransactions } from "@/lib/api/default/default";
 import type { GetOrgsOrgIdTransactionsParams } from "@/lib/api/generated/schemas";
 import { TransactionType, TransactionDisplayType } from "@/lib/api/generated/schemas";
 import { useAuth } from "@/hooks/useAuth";
+import { useOrg } from "@/hooks/useOrg";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useMemo } from "react";
-
-// TODO: Replace with dynamic orgId from useGetMe hook when integrated
-const DEFAULT_ORG_ID = "org_1";
+import { useMemo } from "react";
 
 /**
  * Maps displayType (user-facing) to TransactionType (API)
@@ -31,7 +29,6 @@ function mapDisplayTypeToApiType(displayType: string): TransactionType | undefin
 }
 
 export interface TransactionFilters {
-  storefrontId?: string;
   type?: string;
   status?: string;
   moduleId?: string;
@@ -39,12 +36,15 @@ export interface TransactionFilters {
 
 export function useTransactions() {
   const { isAuthenticated } = useAuth();
+  const { currentOrgId } = useOrg();
   const searchParams = useSearchParams();
+
+  // Use organization ID from useOrg hook (same pattern as useModules)
+  const orgId = currentOrgId || "temp";
 
   // Extract filters from URL search params
   const filters = useMemo<TransactionFilters>(() => {
     return {
-      storefrontId: searchParams.get("storefrontId") || undefined,
       type: searchParams.get("type") || undefined,
       status: searchParams.get("status") || undefined,
       moduleId: searchParams.get("moduleId") || undefined,
@@ -60,8 +60,8 @@ export function useTransactions() {
       cursor,
     };
 
-    if (filters.storefrontId) {
-      params.storefrontId = filters.storefrontId;
+    if (filters.moduleId) {
+      params.moduleId = filters.moduleId;
     }
 
     // Map displayType to API type for filtering
@@ -80,31 +80,23 @@ export function useTransactions() {
     return params;
   }, [filters, cursor]);
 
-  // Fetch transactions
+  // Fetch transactions - only enabled when authenticated and org ID is available
   const query = useGetOrgsOrgIdTransactions(
-    DEFAULT_ORG_ID,
+    orgId,
     apiParams,
     {
       query: {
-        enabled: isAuthenticated,
+        enabled: isAuthenticated && !!currentOrgId,
       },
     }
   );
 
   // Client-side filtering for:
-  // 1. moduleId (API doesn't support it yet)
-  // 2. displayType when type couldn't be mapped to API (e.g., "swap")
+  // - displayType when type couldn't be mapped to API (e.g., "swap")
   const filteredTransactions = useMemo(() => {
     if (!query.data?.items) return [];
 
     let filtered = query.data.items;
-
-    // Filter by moduleId (client-side only)
-    if (filters.moduleId) {
-      filtered = filtered.filter(
-        (transaction) => transaction.moduleId === filters.moduleId
-      );
-    }
 
     // Filter by displayType when API filtering wasn't applied
     // This handles cases like "swap" where we can't map to "in"/"out"
@@ -119,7 +111,7 @@ export function useTransactions() {
     }
 
     return filtered;
-  }, [query.data?.items, filters.moduleId, filters.type]);
+  }, [query.data?.items, filters.type]);
 
   return {
     transactions: filteredTransactions,

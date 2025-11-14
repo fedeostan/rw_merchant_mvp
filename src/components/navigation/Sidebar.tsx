@@ -36,6 +36,10 @@ const merchantToolsSubItems = [
     href: "/dashboard/merchant-tools/getting-started",
   },
   {
+    name: "API Keys",
+    href: "/dashboard/merchant-tools/api-keys",
+  },
+  {
     name: "API documentation",
     href: "/dashboard/merchant-tools/api-documentation",
   },

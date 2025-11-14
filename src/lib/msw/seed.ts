@@ -1,4 +1,4 @@
-import type { Storefront, Transaction, ApiKey, User, Org } from "@/lib/schemas";
+import type { Transaction, User, Org } from "@/lib/schemas";
 
 export const MOCK_ORG_ID = "org_1";
 
@@ -12,14 +12,6 @@ export const mockOrg: Org = {
   id: MOCK_ORG_ID,
   name: "Merchant Org",
   kybStatus: "approved",
-};
-
-export const mockStorefront: Storefront = {
-  id: "sf_1",
-  label: "Default Wallet",
-  type: "CRYPTO",
-  currency: "MNEE",
-  address: "0xabc1234567890def1234567890abcdef12345678",
 };
 
 const generateTransactionHash = (): string => {
@@ -76,10 +68,17 @@ export const generateMockTransactions = (count: number): Transaction[] => {
     const hasCustomerInfo = ["receive", "buy", "sell"].includes(displayType);
     const hasSendHash = ["send", "receive"].includes(displayType);
 
+    // Random module assignment matching production module UUIDs
+    const moduleIds = [
+      "124ca4c8-155e-4865-9e54-23d13b9d3713",
+      "d7e64b6d-614e-4510-ac5a-3878a606e81b",
+      "ebc8c90f-c926-4ba3-a1a1-c9eed3f27567",
+    ];
+    const moduleId = moduleIds[Math.floor(Math.random() * moduleIds.length)];
+
     transactions.push({
       id: `tx_${i + 1}`,
-      storefrontId: "sf_1",
-      moduleId: i % 3 === 0 ? `module_${(i % 9) + 1}` : undefined,
+      moduleId,
       type,
       method,
       displayType,
@@ -119,23 +118,9 @@ export const mockTransactions = generateMockTransactions(100);
 // NOTE: Modules are now stored in Supabase database, not MSW mocks
 // Mock modules have been removed. Use the real API endpoints for modules.
 
-export const generateMockApiKeys = (): ApiKey[] => {
-  const keys: ApiKey[] = [];
-  const now = Date.now();
+// NOTE: API Keys are now stored in Supabase database, not MSW mocks
+// Mock API keys have been removed. Use the real API endpoints for API keys.
 
-  for (let i = 0; i < 3; i++) {
-    keys.push({
-      id: `key_${i + 1}`,
-      last4: `${Math.floor(Math.random() * 10000)}`.padStart(4, "0"),
-      createdAt: new Date(now - i * 30 * 24 * 60 * 60 * 1000).toISOString(),
-      active: i !== 2,
-    });
-  }
-
-  return keys;
-};
-
-export const mockApiKeys = generateMockApiKeys();
 
 
 

@@ -16,7 +16,6 @@ For protected endpoints, include the Supabase session access token in the Author
  */
 
 export interface MoneyBalance {
-  storefrontId?: string;
   currency: string;
   available: number;
   pending: number;

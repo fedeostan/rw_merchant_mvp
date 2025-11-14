@@ -23,4 +23,7 @@ export const TransactionMethod = {
   stablecoin: "stablecoin",
   payout: "payout",
   adjustment: "adjustment",
+  card: "card",
+  bank: "bank",
+  transfer: "transfer",
 } as const;

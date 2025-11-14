@@ -6,6 +6,9 @@ export const transactionMethodSchema = z.enum([
   "stablecoin",
   "payout",
   "adjustment",
+  "card",
+  "bank",
+  "transfer",
 ]);
 export const transactionDisplayTypeSchema = z.enum([
   "receive",
@@ -17,8 +20,7 @@ export const transactionDisplayTypeSchema = z.enum([
 
 export const transactionSchema = z.object({
   id: z.string(),
-  storefrontId: z.string(),
-  moduleId: z.string().optional(),
+  moduleId: z.string(),
   type: transactionTypeSchema,
   method: transactionMethodSchema,
   displayType: transactionDisplayTypeSchema,
@@ -43,6 +45,7 @@ export const transactionsResponseSchema = z.object({
 });
 
 export type TransactionsResponse = z.infer<typeof transactionsResponseSchema>;
+
 
 
 

@@ -1,0 +1,168 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { z } from "zod";
+import { getOrCreateWalletModule } from "@/lib/utils/wallet-module";
+import { calculateOrgBalance } from "@/lib/utils/balance";
+import type { Transaction } from "@/lib/schemas/transaction";
+
+// Request body validation schema
+const sellMneeRequestSchema = z.object({
+  amount: z.number().positive("Amount must be positive"),
+});
+
+/**
+ * POST /api/wallet/sell
+ * Sell MNEE and create an outgoing transaction
+ * Validates sufficient balance before allowing the transaction
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+
+    // Check authentication
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Get user's current organization
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("current_org_id")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !profile?.current_org_id) {
+      return NextResponse.json(
+        { error: "No active organization found" },
+        { status: 400 }
+      );
+    }
+
+    const orgId = profile.current_org_id;
+
+    // Verify user is a member of the organization
+    const { data: isMember, error: membershipError } = await supabase.rpc(
+      "is_org_member",
+      { org_uuid: orgId }
+    );
+
+    if (membershipError || !isMember) {
+      return NextResponse.json(
+        { error: "You do not have access to this organization" },
+        { status: 403 }
+      );
+    }
+
+    // Parse and validate request body
+    const body = await request.json();
+    const validationResult = sellMneeRequestSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          error: "Invalid request data",
+          details: validationResult.error.issues,
+        },
+        { status: 400 }
+      );
+    }
+
+    const { amount } = validationResult.data;
+
+    // CRITICAL: Check if user has sufficient balance before allowing sell
+    const balance = await calculateOrgBalance(orgId);
+
+    if (balance.available < amount) {
+      return NextResponse.json(
+        {
+          error: "Insufficient balance",
+          details: {
+            requested: amount,
+            available: balance.available,
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    // Get or create the default Wallet module
+    const walletModuleId = await getOrCreateWalletModule(orgId);
+
+    // Create transaction in database
+    const { data: newTransaction, error: transactionError } = await supabase
+      .from("transactions")
+      .insert({
+        org_id: orgId,
+        module_id: walletModuleId,
+        type: "out",
+        method: "bank",
+        display_type: "sell",
+        status: "posted",
+        amount,
+        currency: "MNEE",
+      })
+      .select()
+      .single();
+
+    if (transactionError || !newTransaction) {
+      console.error("Error creating transaction:", transactionError);
+      return NextResponse.json(
+        { error: "Failed to create transaction" },
+        { status: 500 }
+      );
+    }
+
+    // Transform database row to Transaction type
+    const transaction: Transaction = {
+      id: newTransaction.id,
+      moduleId: newTransaction.module_id,
+      type: newTransaction.type as "in" | "out",
+      method: newTransaction.method as
+        | "stablecoin"
+        | "payout"
+        | "adjustment"
+        | "card"
+        | "bank"
+        | "transfer",
+      displayType: newTransaction.display_type as
+        | "receive"
+        | "send"
+        | "buy"
+        | "sell"
+        | "swap",
+      amount: parseFloat(newTransaction.amount.toString()),
+      currency: newTransaction.currency,
+      status: newTransaction.status as "pending" | "posted" | "failed",
+      createdAt: newTransaction.created_at,
+      txHashIn: newTransaction.tx_hash_in || undefined,
+      txHashSwap: newTransaction.tx_hash_swap || undefined,
+      feeUsd: newTransaction.fee_usd
+        ? parseFloat(newTransaction.fee_usd.toString())
+        : undefined,
+      customerAddress: newTransaction.customer_address || undefined,
+      customerEmail: newTransaction.customer_email || undefined,
+      sendHash: newTransaction.send_hash || undefined,
+      rockWalletId: newTransaction.rock_wallet_id || undefined,
+    };
+
+    return NextResponse.json(
+      {
+        success: true,
+        transactionId: transaction.id,
+        transaction,
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Unexpected error in POST /api/wallet/sell:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

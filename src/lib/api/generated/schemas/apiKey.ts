@@ -18,6 +18,16 @@ For protected endpoints, include the Supabase session access token in the Author
 export interface ApiKey {
   id: string;
   last4: string;
+  /**
+   * Optional label for the API key (e.g., "Production API")
+   * @nullable
+   */
+  name?: string | null;
   createdAt: string;
+  /**
+   * Timestamp when the API key was last used
+   * @nullable
+   */
+  lastUsedAt?: string | null;
   active: boolean;
 }

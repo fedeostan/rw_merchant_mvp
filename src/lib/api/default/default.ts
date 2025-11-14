@@ -41,7 +41,17 @@ import type {
   MoneyBalance,
   PostAuthOtpSendBody,
   PostAuthOtpVerifyBody,
-  Storefront,
+  PostOrgsOrgIdApikeysBody,
+  PostWalletBuy201,
+  PostWalletBuyBody,
+  PostWalletReceive200,
+  PostWalletReceiveBody,
+  PostWalletSell201,
+  PostWalletSell400,
+  PostWalletSellBody,
+  PostWalletSend201,
+  PostWalletSend400,
+  PostWalletSendBody,
   TransactionsResponse,
   UpdateModuleRequest,
 } from ".././generated/schemas";
@@ -369,32 +379,36 @@ export function useGetMe<
 }
 
 /**
- * @summary List storefronts for org
+ * Calculate organization balance from all transactions.
+Available balance = SUM(amount WHERE type='in' AND status='posted') - SUM(amount WHERE type='out' AND status='posted')
+Pending balance = SUM(amount WHERE type='in' AND status='pending') - SUM(amount WHERE type='out' AND status='pending')
+
+ * @summary Get balance for organization
  */
-export const getOrgsOrgIdStorefronts = (
+export const getOrgsOrgIdBalance = (
   orgId: string,
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal
 ) => {
-  return customInstance<Storefront[]>(
-    { url: `/orgs/${orgId}/storefronts`, method: "GET", signal },
+  return customInstance<MoneyBalance>(
+    { url: `/orgs/${orgId}/balance`, method: "GET", signal },
     options
   );
 };
 
-export const getGetOrgsOrgIdStorefrontsQueryKey = (orgId?: string) => {
-  return [`/orgs/${orgId}/storefronts`] as const;
+export const getGetOrgsOrgIdBalanceQueryKey = (orgId?: string) => {
+  return [`/orgs/${orgId}/balance`] as const;
 };
 
-export const getGetOrgsOrgIdStorefrontsQueryOptions = <
-  TData = Awaited<ReturnType<typeof getOrgsOrgIdStorefronts>>,
+export const getGetOrgsOrgIdBalanceQueryOptions = <
+  TData = Awaited<ReturnType<typeof getOrgsOrgIdBalance>>,
   TError = unknown,
 >(
   orgId: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getOrgsOrgIdStorefronts>>,
+        Awaited<ReturnType<typeof getOrgsOrgIdBalance>>,
         TError,
         TData
       >
@@ -405,11 +419,11 @@ export const getGetOrgsOrgIdStorefrontsQueryOptions = <
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
-    queryOptions?.queryKey ?? getGetOrgsOrgIdStorefrontsQueryKey(orgId);
+    queryOptions?.queryKey ?? getGetOrgsOrgIdBalanceQueryKey(orgId);
 
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof getOrgsOrgIdStorefronts>>
-  > = ({ signal }) => getOrgsOrgIdStorefronts(orgId, requestOptions, signal);
+    Awaited<ReturnType<typeof getOrgsOrgIdBalance>>
+  > = ({ signal }) => getOrgsOrgIdBalance(orgId, requestOptions, signal);
 
   return {
     queryKey,
@@ -417,35 +431,35 @@ export const getGetOrgsOrgIdStorefrontsQueryOptions = <
     enabled: !!orgId,
     ...queryOptions,
   } as UseQueryOptions<
-    Awaited<ReturnType<typeof getOrgsOrgIdStorefronts>>,
+    Awaited<ReturnType<typeof getOrgsOrgIdBalance>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetOrgsOrgIdStorefrontsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getOrgsOrgIdStorefronts>>
+export type GetOrgsOrgIdBalanceQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getOrgsOrgIdBalance>>
 >;
-export type GetOrgsOrgIdStorefrontsQueryError = unknown;
+export type GetOrgsOrgIdBalanceQueryError = unknown;
 
-export function useGetOrgsOrgIdStorefronts<
-  TData = Awaited<ReturnType<typeof getOrgsOrgIdStorefronts>>,
+export function useGetOrgsOrgIdBalance<
+  TData = Awaited<ReturnType<typeof getOrgsOrgIdBalance>>,
   TError = unknown,
 >(
   orgId: string,
   options: {
     query: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getOrgsOrgIdStorefronts>>,
+        Awaited<ReturnType<typeof getOrgsOrgIdBalance>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getOrgsOrgIdStorefronts>>,
+          Awaited<ReturnType<typeof getOrgsOrgIdBalance>>,
           TError,
-          Awaited<ReturnType<typeof getOrgsOrgIdStorefronts>>
+          Awaited<ReturnType<typeof getOrgsOrgIdBalance>>
         >,
         "initialData"
       >;
@@ -455,24 +469,24 @@ export function useGetOrgsOrgIdStorefronts<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useGetOrgsOrgIdStorefronts<
-  TData = Awaited<ReturnType<typeof getOrgsOrgIdStorefronts>>,
+export function useGetOrgsOrgIdBalance<
+  TData = Awaited<ReturnType<typeof getOrgsOrgIdBalance>>,
   TError = unknown,
 >(
   orgId: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getOrgsOrgIdStorefronts>>,
+        Awaited<ReturnType<typeof getOrgsOrgIdBalance>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getOrgsOrgIdStorefronts>>,
+          Awaited<ReturnType<typeof getOrgsOrgIdBalance>>,
           TError,
-          Awaited<ReturnType<typeof getOrgsOrgIdStorefronts>>
+          Awaited<ReturnType<typeof getOrgsOrgIdBalance>>
         >,
         "initialData"
       >;
@@ -482,15 +496,15 @@ export function useGetOrgsOrgIdStorefronts<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useGetOrgsOrgIdStorefronts<
-  TData = Awaited<ReturnType<typeof getOrgsOrgIdStorefronts>>,
+export function useGetOrgsOrgIdBalance<
+  TData = Awaited<ReturnType<typeof getOrgsOrgIdBalance>>,
   TError = unknown,
 >(
   orgId: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getOrgsOrgIdStorefronts>>,
+        Awaited<ReturnType<typeof getOrgsOrgIdBalance>>,
         TError,
         TData
       >
@@ -502,18 +516,18 @@ export function useGetOrgsOrgIdStorefronts<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary List storefronts for org
+ * @summary Get balance for organization
  */
 
-export function useGetOrgsOrgIdStorefronts<
-  TData = Awaited<ReturnType<typeof getOrgsOrgIdStorefronts>>,
+export function useGetOrgsOrgIdBalance<
+  TData = Awaited<ReturnType<typeof getOrgsOrgIdBalance>>,
   TError = unknown,
 >(
   orgId: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getOrgsOrgIdStorefronts>>,
+        Awaited<ReturnType<typeof getOrgsOrgIdBalance>>,
         TError,
         TData
       >
@@ -524,194 +538,7 @@ export function useGetOrgsOrgIdStorefronts<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getGetOrgsOrgIdStorefrontsQueryOptions(orgId, options);
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey;
-
-  return query;
-}
-
-/**
- * @summary Get balance for storefront
- */
-export const getOrgsOrgIdStorefrontsSfIdBalance = (
-  orgId: string,
-  sfId: string,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal
-) => {
-  return customInstance<MoneyBalance>(
-    {
-      url: `/orgs/${orgId}/storefronts/${sfId}/balance`,
-      method: "GET",
-      signal,
-    },
-    options
-  );
-};
-
-export const getGetOrgsOrgIdStorefrontsSfIdBalanceQueryKey = (
-  orgId?: string,
-  sfId?: string
-) => {
-  return [`/orgs/${orgId}/storefronts/${sfId}/balance`] as const;
-};
-
-export const getGetOrgsOrgIdStorefrontsSfIdBalanceQueryOptions = <
-  TData = Awaited<ReturnType<typeof getOrgsOrgIdStorefrontsSfIdBalance>>,
-  TError = unknown,
->(
-  orgId: string,
-  sfId: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getOrgsOrgIdStorefrontsSfIdBalance>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  }
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-
-  const queryKey =
-    queryOptions?.queryKey ??
-    getGetOrgsOrgIdStorefrontsSfIdBalanceQueryKey(orgId, sfId);
-
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof getOrgsOrgIdStorefrontsSfIdBalance>>
-  > = ({ signal }) =>
-    getOrgsOrgIdStorefrontsSfIdBalance(orgId, sfId, requestOptions, signal);
-
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!(orgId && sfId),
-    ...queryOptions,
-  } as UseQueryOptions<
-    Awaited<ReturnType<typeof getOrgsOrgIdStorefrontsSfIdBalance>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
-
-export type GetOrgsOrgIdStorefrontsSfIdBalanceQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getOrgsOrgIdStorefrontsSfIdBalance>>
->;
-export type GetOrgsOrgIdStorefrontsSfIdBalanceQueryError = unknown;
-
-export function useGetOrgsOrgIdStorefrontsSfIdBalance<
-  TData = Awaited<ReturnType<typeof getOrgsOrgIdStorefrontsSfIdBalance>>,
-  TError = unknown,
->(
-  orgId: string,
-  sfId: string,
-  options: {
-    query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getOrgsOrgIdStorefrontsSfIdBalance>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getOrgsOrgIdStorefrontsSfIdBalance>>,
-          TError,
-          Awaited<ReturnType<typeof getOrgsOrgIdStorefrontsSfIdBalance>>
-        >,
-        "initialData"
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useGetOrgsOrgIdStorefrontsSfIdBalance<
-  TData = Awaited<ReturnType<typeof getOrgsOrgIdStorefrontsSfIdBalance>>,
-  TError = unknown,
->(
-  orgId: string,
-  sfId: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getOrgsOrgIdStorefrontsSfIdBalance>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getOrgsOrgIdStorefrontsSfIdBalance>>,
-          TError,
-          Awaited<ReturnType<typeof getOrgsOrgIdStorefrontsSfIdBalance>>
-        >,
-        "initialData"
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useGetOrgsOrgIdStorefrontsSfIdBalance<
-  TData = Awaited<ReturnType<typeof getOrgsOrgIdStorefrontsSfIdBalance>>,
-  TError = unknown,
->(
-  orgId: string,
-  sfId: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getOrgsOrgIdStorefrontsSfIdBalance>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
-/**
- * @summary Get balance for storefront
- */
-
-export function useGetOrgsOrgIdStorefrontsSfIdBalance<
-  TData = Awaited<ReturnType<typeof getOrgsOrgIdStorefrontsSfIdBalance>>,
-  TError = unknown,
->(
-  orgId: string,
-  sfId: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getOrgsOrgIdStorefrontsSfIdBalance>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getGetOrgsOrgIdStorefrontsSfIdBalanceQueryOptions(
-    orgId,
-    sfId,
-    options
-  );
+  const queryOptions = getGetOrgsOrgIdBalanceQueryOptions(orgId, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
@@ -1697,11 +1524,18 @@ export function useGetOrgsOrgIdApikeys<
  */
 export const postOrgsOrgIdApikeys = (
   orgId: string,
+  postOrgsOrgIdApikeysBody?: PostOrgsOrgIdApikeysBody,
   options?: SecondParameter<typeof customInstance>,
   signal?: AbortSignal
 ) => {
   return customInstance<ApiKeyResponse>(
-    { url: `/orgs/${orgId}/apikeys`, method: "POST", signal },
+    {
+      url: `/orgs/${orgId}/apikeys`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: postOrgsOrgIdApikeysBody,
+      signal,
+    },
     options
   );
 };
@@ -1713,14 +1547,14 @@ export const getPostOrgsOrgIdApikeysMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof postOrgsOrgIdApikeys>>,
     TError,
-    { orgId: string },
+    { orgId: string; data: PostOrgsOrgIdApikeysBody },
     TContext
   >;
   request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postOrgsOrgIdApikeys>>,
   TError,
-  { orgId: string },
+  { orgId: string; data: PostOrgsOrgIdApikeysBody },
   TContext
 > => {
   const mutationKey = ["postOrgsOrgIdApikeys"];
@@ -1734,11 +1568,11 @@ export const getPostOrgsOrgIdApikeysMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof postOrgsOrgIdApikeys>>,
-    { orgId: string }
+    { orgId: string; data: PostOrgsOrgIdApikeysBody }
   > = (props) => {
-    const { orgId } = props ?? {};
+    const { orgId, data } = props ?? {};
 
-    return postOrgsOrgIdApikeys(orgId, requestOptions);
+    return postOrgsOrgIdApikeys(orgId, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -1747,7 +1581,7 @@ export const getPostOrgsOrgIdApikeysMutationOptions = <
 export type PostOrgsOrgIdApikeysMutationResult = NonNullable<
   Awaited<ReturnType<typeof postOrgsOrgIdApikeys>>
 >;
-
+export type PostOrgsOrgIdApikeysMutationBody = PostOrgsOrgIdApikeysBody;
 export type PostOrgsOrgIdApikeysMutationError = unknown;
 
 /**
@@ -1758,7 +1592,7 @@ export const usePostOrgsOrgIdApikeys = <TError = unknown, TContext = unknown>(
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof postOrgsOrgIdApikeys>>,
       TError,
-      { orgId: string },
+      { orgId: string; data: PostOrgsOrgIdApikeysBody },
       TContext
     >;
     request?: SecondParameter<typeof customInstance>;
@@ -1767,10 +1601,399 @@ export const usePostOrgsOrgIdApikeys = <TError = unknown, TContext = unknown>(
 ): UseMutationResult<
   Awaited<ReturnType<typeof postOrgsOrgIdApikeys>>,
   TError,
-  { orgId: string },
+  { orgId: string; data: PostOrgsOrgIdApikeysBody },
   TContext
 > => {
   const mutationOptions = getPostOrgsOrgIdApikeysMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Create an incoming transaction for buying MNEE with a payment method.
+This will:
+- Create a transaction with type='in', method='card', display_type='buy', status='posted'
+- Assign to default "Wallet" module (creates if doesn't exist)
+- Generate realistic mock blockchain hash (tx_hash_in)
+- Return real transaction ID and full transaction details
+
+ * @summary Buy MNEE and create transaction
+ */
+export const postWalletBuy = (
+  postWalletBuyBody: PostWalletBuyBody,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<PostWalletBuy201>(
+    {
+      url: `/wallet/buy`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: postWalletBuyBody,
+      signal,
+    },
+    options
+  );
+};
+
+export const getPostWalletBuyMutationOptions = <
+  TError = void,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postWalletBuy>>,
+    TError,
+    { data: PostWalletBuyBody },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postWalletBuy>>,
+  TError,
+  { data: PostWalletBuyBody },
+  TContext
+> => {
+  const mutationKey = ["postWalletBuy"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postWalletBuy>>,
+    { data: PostWalletBuyBody }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return postWalletBuy(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PostWalletBuyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postWalletBuy>>
+>;
+export type PostWalletBuyMutationBody = PostWalletBuyBody;
+export type PostWalletBuyMutationError = void;
+
+/**
+ * @summary Buy MNEE and create transaction
+ */
+export const usePostWalletBuy = <TError = void, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postWalletBuy>>,
+      TError,
+      { data: PostWalletBuyBody },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof postWalletBuy>>,
+  TError,
+  { data: PostWalletBuyBody },
+  TContext
+> => {
+  const mutationOptions = getPostWalletBuyMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Create an outgoing transaction for selling MNEE to bank account.
+This will:
+- **Validate sufficient balance** before allowing the transaction
+- Create a transaction with type='out', method='bank', display_type='sell', status='posted'
+- Assign to default "Wallet" module
+- Return real transaction ID and full transaction details
+
+ * @summary Sell MNEE and create transaction
+ */
+export const postWalletSell = (
+  postWalletSellBody: PostWalletSellBody,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<PostWalletSell201>(
+    {
+      url: `/wallet/sell`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: postWalletSellBody,
+      signal,
+    },
+    options
+  );
+};
+
+export const getPostWalletSellMutationOptions = <
+  TError = PostWalletSell400 | void,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postWalletSell>>,
+    TError,
+    { data: PostWalletSellBody },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postWalletSell>>,
+  TError,
+  { data: PostWalletSellBody },
+  TContext
+> => {
+  const mutationKey = ["postWalletSell"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postWalletSell>>,
+    { data: PostWalletSellBody }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return postWalletSell(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PostWalletSellMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postWalletSell>>
+>;
+export type PostWalletSellMutationBody = PostWalletSellBody;
+export type PostWalletSellMutationError = PostWalletSell400 | void;
+
+/**
+ * @summary Sell MNEE and create transaction
+ */
+export const usePostWalletSell = <
+  TError = PostWalletSell400 | void,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postWalletSell>>,
+      TError,
+      { data: PostWalletSellBody },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof postWalletSell>>,
+  TError,
+  { data: PostWalletSellBody },
+  TContext
+> => {
+  const mutationOptions = getPostWalletSellMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Create an outgoing transaction for sending MNEE to another wallet address.
+This will:
+- **Validate sufficient balance** before allowing the transaction
+- Create a transaction with type='out', method='transfer', display_type='send', status='posted'
+- Store recipient address in customer_address field
+- Generate mock blockchain transaction hash (send_hash)
+- Assign to default "Wallet" module
+- Return real transaction ID, transaction details, and mock blockchain hash
+
+ * @summary Send MNEE to another wallet
+ */
+export const postWalletSend = (
+  postWalletSendBody: PostWalletSendBody,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<PostWalletSend201>(
+    {
+      url: `/wallet/send`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: postWalletSendBody,
+      signal,
+    },
+    options
+  );
+};
+
+export const getPostWalletSendMutationOptions = <
+  TError = PostWalletSend400 | void,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postWalletSend>>,
+    TError,
+    { data: PostWalletSendBody },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postWalletSend>>,
+  TError,
+  { data: PostWalletSendBody },
+  TContext
+> => {
+  const mutationKey = ["postWalletSend"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postWalletSend>>,
+    { data: PostWalletSendBody }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return postWalletSend(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PostWalletSendMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postWalletSend>>
+>;
+export type PostWalletSendMutationBody = PostWalletSendBody;
+export type PostWalletSendMutationError = PostWalletSend400 | void;
+
+/**
+ * @summary Send MNEE to another wallet
+ */
+export const usePostWalletSend = <
+  TError = PostWalletSend400 | void,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postWalletSend>>,
+      TError,
+      { data: PostWalletSendBody },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof postWalletSend>>,
+  TError,
+  { data: PostWalletSendBody },
+  TContext
+> => {
+  const mutationOptions = getPostWalletSendMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Generate a mock wallet address and QR code for receiving MNEE.
+This will:
+- Generate mock Ethereum wallet address (0x + 40 hex characters)
+- Generate QR code as base64 data URL using the address
+- If amount is provided, encode it in the QR code for payment request
+- **Does NOT create a transaction** (transaction created when funds are actually received)
+- Return wallet address and QR code data
+
+ * @summary Generate wallet address and QR code for receiving MNEE
+ */
+export const postWalletReceive = (
+  postWalletReceiveBody?: PostWalletReceiveBody,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal
+) => {
+  return customInstance<PostWalletReceive200>(
+    {
+      url: `/wallet/receive`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: postWalletReceiveBody,
+      signal,
+    },
+    options
+  );
+};
+
+export const getPostWalletReceiveMutationOptions = <
+  TError = void,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postWalletReceive>>,
+    TError,
+    { data: PostWalletReceiveBody },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postWalletReceive>>,
+  TError,
+  { data: PostWalletReceiveBody },
+  TContext
+> => {
+  const mutationKey = ["postWalletReceive"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postWalletReceive>>,
+    { data: PostWalletReceiveBody }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return postWalletReceive(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PostWalletReceiveMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postWalletReceive>>
+>;
+export type PostWalletReceiveMutationBody = PostWalletReceiveBody;
+export type PostWalletReceiveMutationError = void;
+
+/**
+ * @summary Generate wallet address and QR code for receiving MNEE
+ */
+export const usePostWalletReceive = <TError = void, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postWalletReceive>>,
+      TError,
+      { data: PostWalletReceiveBody },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof postWalletReceive>>,
+  TError,
+  { data: PostWalletReceiveBody },
+  TContext
+> => {
+  const mutationOptions = getPostWalletReceiveMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
