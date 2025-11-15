@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Wallet, Minus, ArrowUpRight, ArrowDownLeft, Plus, Repeat2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWalletBalance } from "@/hooks/useWalletBalance";
-import { useMneePrice } from "@/hooks/useMneePrice";
 import { AnnouncementCard } from "@/components/dashboard/AnnouncementCard";
 import { BalanceCard } from "@/components/dashboard/BalanceCard";
 import { ActionButton } from "@/components/dashboard/ActionButton";
@@ -23,15 +22,11 @@ export default function WalletPage() {
   // Fetch wallet data
   const {
     balance,
-    isLoading: balanceLoading,
+    isLoading,
     error: balanceError,
     refresh: refreshBalance,
     isPending: isWalletActionPending,
   } = useWalletBalance();
-  const { price, isLoading: priceLoading, error: priceError, refresh: refreshPrice } = useMneePrice();
-
-  // Combined loading state
-  const isLoading = balanceLoading || priceLoading;
 
   // Refresh both balance and price
   const handleRefresh = async () => {
@@ -45,10 +40,6 @@ export default function WalletPage() {
       // Invalidate cache to ensure fresh data (this automatically triggers refetch for active queries)
       await queryClient.invalidateQueries({
         queryKey: ['orgBalance'],
-        refetchType: 'active'
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ['/mnee/price'],
         refetchType: 'active'
       });
 
@@ -92,11 +83,13 @@ export default function WalletPage() {
               balance={balance?.available}
               pendingBalance={balance?.pending}
               currency={balance?.currency}
-              pricePerUnit={price?.price}
+              pricePerUnit={balance?.priceUsd}
+              priceChangePercentage24h={balance?.priceChangePercentage24h}
+              totalUsd={balance?.totalUsd}
               isLoading={isLoading || isWalletActionPending}
               isRefreshing={isRefreshing || isWalletActionPending}
               refreshSuccess={refreshSuccess}
-              error={(balanceError || priceError) as Error | null}
+              error={balanceError as Error | null}
               onRefresh={handleRefresh}
             />
 

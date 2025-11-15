@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
+import { refreshMneePriceIfNeeded } from "@/lib/utils/cryptoPrice";
 
 export interface OrgBalance {
   available: number;
@@ -15,11 +16,16 @@ export interface OrgBalance {
  * Calculate organization balance from transactions
  * Logic: SUM(amount WHERE type='in' AND status='posted') - SUM(amount WHERE type='out' AND status='posted')
  * Pending: SUM(amount WHERE type='in' AND status='pending') - SUM(amount WHERE type='out' AND status='pending')
+ *
+ * MNEE price is automatically refreshed from CoinGecko if stale (>1 hour old)
  */
 export async function calculateOrgBalance(
   orgId: string
 ): Promise<OrgBalance> {
   const supabase = await createClient();
+
+  // Refresh MNEE price if needed (transparent auto-refresh)
+  const priceData = await refreshMneePriceIfNeeded();
 
   // Fetch all transactions for the organization
   const { data: transactions, error } = await supabase
@@ -31,22 +37,8 @@ export async function calculateOrgBalance(
     throw new Error(`Failed to fetch transactions: ${error.message}`);
   }
 
-  // Fetch MNEE price from crypto_prices_latest view
-  const { data: priceData, error: priceError } = await supabase
-    .from("crypto_prices_latest")
-    .select("price_usd, price_change_percentage_24h")
-    .eq("symbol", "MNEE")
-    .single();
-
-  if (priceError) {
-    console.error("Failed to fetch MNEE price:", priceError);
-    throw new Error(`Failed to fetch MNEE price: ${priceError.message}`);
-  }
-
-  const priceUsd = Number(priceData.price_usd);
-  const priceChangePercentage24h = priceData.price_change_percentage_24h
-    ? Number(priceData.price_change_percentage_24h)
-    : null;
+  const priceUsd = priceData.priceUsd;
+  const priceChangePercentage24h = priceData.priceChangePercentage24h;
 
   if (!transactions) {
     return {

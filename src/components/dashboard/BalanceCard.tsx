@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RefreshCw, Check } from "lucide-react";
+import { RefreshCw, Check, ArrowUp, ArrowDown } from "lucide-react";
+import { formatPercentageChange, formatUsdAmount } from "@/lib/utils/transactionFormatters";
 
 interface BalanceCardProps {
   /**
@@ -19,6 +20,14 @@ interface BalanceCardProps {
    * Current price per unit in USD
    */
   pricePerUnit?: number;
+  /**
+   * 24-hour price change percentage
+   */
+  priceChangePercentage24h?: number | null;
+  /**
+   * Total balance in USD (available + pending) * price
+   */
+  totalUsd?: number;
   /**
    * Loading state
    */
@@ -50,6 +59,8 @@ export function BalanceCard({
   pendingBalance,
   currency = "MNEE",
   pricePerUnit,
+  priceChangePercentage24h,
+  totalUsd,
   isLoading = false,
   isRefreshing = false,
   refreshSuccess = false,
@@ -86,6 +97,17 @@ export function BalanceCard({
   // Check if balance is empty (0 or undefined/null)
   const hasBalance = balance !== undefined && balance !== null && balance > 0;
 
+  // Calculate total balance (available + pending) for display
+  const totalBalance = (balance || 0) + (pendingBalance || 0);
+
+  // Determine if price change is positive or negative
+  const isPricePositive = priceChangePercentage24h !== null &&
+                          priceChangePercentage24h !== undefined &&
+                          priceChangePercentage24h > 0;
+  const isPriceNegative = priceChangePercentage24h !== null &&
+                          priceChangePercentage24h !== undefined &&
+                          priceChangePercentage24h < 0;
+
   return (
     <div className="bg-card border border-border rounded-xl px-6 py-6 flex flex-col gap-6">
       {/* Top section: Label + Balance/Empty State + Refresh */}
@@ -97,12 +119,38 @@ export function BalanceCard({
           {isLoading ? (
             <Skeleton className="h-9 w-48" />
           ) : hasBalance ? (
-            <h2 className="text-3xl font-semibold text-card-foreground leading-9">
-              {balance?.toLocaleString(undefined, {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
-              })} {currency}
-            </h2>
+            <div className="flex items-center gap-2">
+              {/* Primary: MNEE amount */}
+              <div className="border-r border-border pr-3">
+                <h2 className="text-3xl font-semibold text-card-foreground leading-9">
+                  {totalBalance.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })} {currency}
+                </h2>
+              </div>
+              {/* Secondary: Price change indicator */}
+              <div className="flex-1 flex items-center gap-2.5">
+                <div className="flex items-center gap-0.5">
+                  {isPricePositive && (
+                    <ArrowUp className="w-6 h-6 text-green-600" />
+                  )}
+                  {isPriceNegative && (
+                    <ArrowDown className="w-6 h-6 text-red-600" />
+                  )}
+                  <p className={`text-sm font-bold leading-5 ${
+                    isPricePositive ? "text-green-600" :
+                    isPriceNegative ? "text-red-600" :
+                    "text-muted-foreground"
+                  }`}>
+                    {formatPercentageChange(priceChangePercentage24h)}
+                  </p>
+                </div>
+                <p className="text-base text-muted-foreground leading-6">
+                  24h
+                </p>
+              </div>
+            </div>
           ) : (
             <p className="text-sm text-muted-foreground leading-5">
               Your MNEE balance will appear here once customers start making payments.
@@ -128,41 +176,17 @@ export function BalanceCard({
         )}
       </div>
 
-      {/* Bottom section: Price info in single line with separator - only show if has balance */}
+      {/* Bottom section: USD value - only show if has balance */}
       {isLoading ? (
-        <Skeleton className="h-5 w-64" />
+        <Skeleton className="h-6 w-64" />
       ) : hasBalance ? (
-        <div className="flex items-center gap-2.5 text-sm text-muted-foreground leading-5">
-          <span>
-            MNEE Price:{" "}
-            <span className="text-foreground">
-              ${pricePerUnit?.toFixed(2) || "0.00"}
+        <div className="flex items-center gap-2.5">
+          <p className="text-base text-muted-foreground leading-6">
+            Balance in USD:{" "}
+            <span className="font-medium">
+              {totalUsd !== undefined ? formatUsdAmount(totalUsd) : "$0.00"}
             </span>
-          </span>
-          <span>|</span>
-          <span>
-            Available:{" "}
-            <span className="text-foreground">
-              {balance?.toLocaleString(undefined, {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
-              })} {currency}
-            </span>
-          </span>
-          {pendingBalance !== undefined && pendingBalance !== 0 && (
-            <>
-              <span>|</span>
-              <span>
-                Pending:{" "}
-                <span className="text-foreground">
-                  {pendingBalance?.toLocaleString(undefined, {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  })} {currency}
-                </span>
-              </span>
-            </>
-          )}
+          </p>
         </div>
       ) : null}
     </div>

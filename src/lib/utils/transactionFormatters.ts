@@ -84,3 +84,37 @@ export function getAmountColorClass(displayType: Transaction["displayType"]): st
     displayType === "receive" || displayType === "buy" || displayType === "swap";
   return isPositive ? "text-green-600" : "text-gray-900";
 }
+
+/**
+ * Format percentage change with sign and percentage symbol
+ * @param value - The percentage value to format
+ * @returns Formatted percentage string (e.g., "+5.23%", "-2.45%", "0.00%")
+ *
+ * @example
+ * formatPercentageChange(5.23) // "+5.23%"
+ * formatPercentageChange(-2.45) // "-2.45%"
+ * formatPercentageChange(null) // "0.00%"
+ */
+export function formatPercentageChange(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "0.00%";
+  const sign = value > 0 ? "+" : "";
+  return `${sign}${value.toFixed(2)}%`;
+}
+
+/**
+ * Format USD amount with currency symbol
+ * @param value - The USD amount to format
+ * @returns Formatted USD string (e.g., "$1,234.56")
+ *
+ * @example
+ * formatUsdAmount(1234.56) // "$1,234.56"
+ * formatUsdAmount(1000000) // "$1,000,000.00"
+ */
+export function formatUsdAmount(value: number): string {
+  return value.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}

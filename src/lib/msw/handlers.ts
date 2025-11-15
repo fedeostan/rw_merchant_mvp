@@ -14,17 +14,6 @@ export const handlers = [
     });
   }),
 
-  // MNEE Price
-  http.get("*/api/mnee/price", () => {
-    console.log("[MSW] Handling: GET /api/mnee/price");
-    return HttpResponse.json({
-      price: 1.1,
-      currency: "USD",
-      change24h: 2.5,
-      lastUpdated: new Date().toISOString(),
-    });
-  }),
-
   // ============================================================================
   // WALLET ENDPOINTS - NOT MOCKED (Bypass MSW)
   // ============================================================================
