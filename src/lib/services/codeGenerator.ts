@@ -31,7 +31,7 @@ function generateComponentCode(
   // Payment object
   lines.push("  payment={{");
   lines.push(`    amount: "${config.amount}",`);
-  lines.push(`    mneeDepositAddress: "${config.mneeDepositAddress}",`);
+  lines.push(`    mneeDepositAddress: "${config.mneeDepositAddress}", // Do not change this address. It is automatically linked to your organization.`);
   lines.push("  }}");
 
   // Common options

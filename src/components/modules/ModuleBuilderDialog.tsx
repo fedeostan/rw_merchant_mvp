@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { X, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { ConfigureTab } from "./ConfigureTab";
 import { CodeTab } from "./CodeTab";
 import { PreviewTab } from "./PreviewTab";
@@ -146,32 +146,11 @@ export function ModuleBuilderDialog({
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
-            <div className="flex-1">
-              <DialogTitle className="text-xl">{module.name}</DialogTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Module builder
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowDeleteDialog(true)}
-                disabled={updateModule.isPending || deleteModule.isPending}
-                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleOpenChange(false)}
-                disabled={updateModule.isPending || deleteModule.isPending}
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
+          <DialogHeader className="pb-2">
+            <DialogTitle className="text-xl">{module.name}</DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              Module builder
+            </p>
           </DialogHeader>
 
           <Tabs
@@ -179,35 +158,37 @@ export function ModuleBuilderDialog({
             onValueChange={setActiveTab}
             className="flex-1 flex flex-col overflow-hidden"
           >
-            <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
+            <TabsList className="w-full justify-start rounded-none h-auto p-0 bg-transparent">
               <TabsTrigger
                 value="configure"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-sm"
               >
                 Configure
               </TabsTrigger>
               <TabsTrigger
                 value="code"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-sm"
               >
                 Code
               </TabsTrigger>
               <TabsTrigger
                 value="preview"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-sm"
               >
                 Preview
               </TabsTrigger>
             </TabsList>
 
-            <div className="flex-1 overflow-y-auto py-6 px-1">
+            <div className="flex-1 overflow-y-auto pt-6 pb-4 px-1">
               <TabsContent value="configure" className="mt-0">
                 <ConfigureTab
                   module={module}
                   configuration={draftConfiguration}
                   onChange={setDraftConfiguration}
                   onSave={handleSave}
+                  onDelete={() => setShowDeleteDialog(true)}
                   isLoading={updateModule.isPending}
+                  isDeleting={deleteModule.isPending}
                   hasUnsavedChanges={hasUnsavedChanges}
                 />
               </TabsContent>

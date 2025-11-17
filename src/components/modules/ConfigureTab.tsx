@@ -6,16 +6,32 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Trash2, Plus, X } from "lucide-react";
 import type { Module } from "@/lib/api/generated/schemas/module";
-import type { ModuleConfiguration } from "@/lib/schemas/module";
+import type { ModuleConfiguration, CustomField } from "@/lib/schemas/module";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ConfigureTabProps {
   module: Module;
   configuration: ModuleConfiguration;
   onChange: (configuration: ModuleConfiguration) => void;
   onSave: () => void;
+  onDelete?: () => void;
   isLoading?: boolean;
+  isDeleting?: boolean;
   hasUnsavedChanges?: boolean;
 }
 
@@ -24,10 +40,18 @@ export function ConfigureTab({
   configuration,
   onChange,
   onSave,
+  onDelete,
   isLoading = false,
+  isDeleting = false,
   hasUnsavedChanges = false,
 }: ConfigureTabProps) {
   const [copied, setCopied] = useState(false);
+  const [showAddFieldDialog, setShowAddFieldDialog] = useState(false);
+  const [newField, setNewField] = useState<CustomField>({
+    label: "",
+    type: "text",
+    required: false,
+  });
 
   const handleCopyAddress = () => {
     navigator.clipboard.writeText(configuration.mneeDepositAddress);
@@ -40,8 +64,28 @@ export function ConfigureTab({
     onSave();
   };
 
+  const handleAddField = () => {
+    if (!newField.label.trim()) return;
+    const currentFields = configuration.customFields || [];
+    onChange({
+      ...configuration,
+      customFields: [...currentFields, newField],
+    });
+    setNewField({ label: "", type: "text", required: false });
+    setShowAddFieldDialog(false);
+  };
+
+  const handleRemoveField = (index: number) => {
+    const currentFields = configuration.customFields || [];
+    onChange({
+      ...configuration,
+      customFields: currentFields.filter((_, i) => i !== index),
+    });
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-8">
       {/* Common Configuration */}
       <div className="flex flex-col gap-4">
         <h3 className="text-sm font-semibold text-foreground">
@@ -378,17 +422,232 @@ export function ConfigureTab({
         </div>
       )}
 
-      {/* Save Button */}
-      <div className="flex justify-end gap-2 pt-4 border-t">
-        {hasUnsavedChanges && (
-          <p className="text-sm text-muted-foreground self-center">
-            You have unsaved changes
+      {/* Styling Section */}
+      <div className="flex flex-col gap-4">
+        <h3 className="text-sm font-semibold text-foreground">Styling</h3>
+
+        <div className="grid gap-2">
+          <Label htmlFor="buttonText">Button Text (optional)</Label>
+          <Input
+            id="buttonText"
+            type="text"
+            placeholder="Leave empty for default"
+            value={configuration.styling?.buttonText || ""}
+            onChange={(e) =>
+              onChange({
+                ...configuration,
+                styling: {
+                  ...configuration.styling,
+                  buttonText: e.target.value,
+                },
+              })
+            }
+            disabled={isLoading}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="primaryColor">Primary Color (optional)</Label>
+            <Input
+              id="primaryColor"
+              type="text"
+              placeholder="#8b5cf6"
+              value={configuration.styling?.primaryColor || ""}
+              onChange={(e) =>
+                onChange({
+                  ...configuration,
+                  styling: {
+                    ...configuration.styling,
+                    primaryColor: e.target.value,
+                  },
+                })
+              }
+              disabled={isLoading}
+              className="font-mono"
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="buttonColor">Button Color (optional)</Label>
+            <Input
+              id="buttonColor"
+              type="text"
+              placeholder="#ec4899"
+              value={configuration.styling?.buttonColor || ""}
+              onChange={(e) =>
+                onChange({
+                  ...configuration,
+                  styling: {
+                    ...configuration.styling,
+                    buttonColor: e.target.value,
+                  },
+                })
+              }
+              disabled={isLoading}
+              className="font-mono"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Custom Fields Section */}
+      <div className="flex flex-col gap-4">
+        <h3 className="text-sm font-semibold text-foreground">
+          Custom Fields (Product Options, etc.)
+        </h3>
+
+        {(!configuration.customFields ||
+          configuration.customFields.length === 0) && (
+          <p className="text-sm text-muted-foreground">
+            No custom fields added yet. Add fields like size, color, format,
+            etc.
           </p>
         )}
-        <Button type="submit" disabled={isLoading || !hasUnsavedChanges}>
-          {isLoading ? "Saving..." : "Save changes"}
+
+        {configuration.customFields && configuration.customFields.length > 0 && (
+          <div className="flex flex-col gap-2">
+            {configuration.customFields.map((field, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between p-3 rounded-md border bg-muted/30"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium">{field.label}</span>
+                  <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                    {field.type}
+                  </span>
+                  {field.required && (
+                    <span className="text-xs text-orange-600 dark:text-orange-400">
+                      Required
+                    </span>
+                  )}
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleRemoveField(index)}
+                  disabled={isLoading}
+                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <Button
+          type="button"
+          variant="default"
+          onClick={() => setShowAddFieldDialog(true)}
+          disabled={isLoading}
+          className="bg-purple-600 hover:bg-purple-700 text-white"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Field
         </Button>
       </div>
+
+      {/* Save Button */}
+      <div className="flex justify-between items-center pt-4 border-t">
+        <div>
+          {onDelete && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onDelete}
+              disabled={isLoading || isDeleting}
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete module
+            </Button>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {hasUnsavedChanges && (
+            <p className="text-sm text-muted-foreground">
+              You have unsaved changes
+            </p>
+          )}
+          <Button type="submit" disabled={isLoading || !hasUnsavedChanges}>
+            {isLoading ? "Saving..." : "Save changes"}
+          </Button>
+        </div>
+      </div>
     </form>
+
+    {/* Add Custom Field Dialog */}
+    <Dialog open={showAddFieldDialog} onOpenChange={setShowAddFieldDialog}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add Custom Field</DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="fieldLabel">Field Label</Label>
+            <Input
+              id="fieldLabel"
+              placeholder="e.g., Size, Color, Format"
+              value={newField.label}
+              onChange={(e) =>
+                setNewField({ ...newField, label: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="fieldType">Field Type</Label>
+            <Select
+              value={newField.type}
+              onValueChange={(value) =>
+                setNewField({ ...newField, type: value })
+              }
+            >
+              <SelectTrigger id="fieldType">
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="text">Text</SelectItem>
+                <SelectItem value="select">Dropdown</SelectItem>
+                <SelectItem value="checkbox">Checkbox</SelectItem>
+                <SelectItem value="number">Number</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="fieldRequired"
+              checked={newField.required}
+              onCheckedChange={(checked) =>
+                setNewField({ ...newField, required: checked as boolean })
+              }
+            />
+            <Label htmlFor="fieldRequired" className="cursor-pointer">
+              Required field
+            </Label>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setShowAddFieldDialog(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleAddField}
+            disabled={!newField.label.trim()}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            Add Field
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

@@ -35,6 +35,14 @@ export const stylingConfigSchema = z.object({
   buttonColor: z.string().optional(),
 });
 
+export const customFieldSchema = z.object({
+  label: z.string().min(1, "Field label is required"),
+  type: z.string().min(1, "Field type is required"),
+  required: z.boolean().default(false),
+});
+
+export type CustomField = z.infer<typeof customFieldSchema>;
+
 // Phase 5: Enhanced type safety with stricter validation
 export const moduleConfigurationSchema = z.object({
   // Common fields with stricter validation
@@ -53,11 +61,7 @@ export const moduleConfigurationSchema = z.object({
   styling: stylingConfigSchema.optional(),
 
   // Custom fields for extensibility
-  customFields: z.array(z.object({
-    label: z.string().min(1, "Field label is required"),
-    type: z.string().min(1, "Field type is required"),
-    required: z.boolean().default(false),
-  })).optional(),
+  customFields: z.array(customFieldSchema).optional(),
 }).refine(
   (data) => {
     // At least one type-specific configuration must be present
@@ -104,6 +108,7 @@ export const updateModuleRequestSchema = z.object({
 });
 
 export type UpdateModuleRequest = z.infer<typeof updateModuleRequestSchema>;
+
 
 
 
