@@ -50,7 +50,30 @@ if (error) {
 
 ## Migration Files
 
-- `20241110_create_modules_table.sql` - Creates the modules table with RLS policies
+### Core Schema Migrations
+
+- `20250111_fix_user_organizations_rls_allow_owner.sql` - Fix RLS policies for user organizations (allow owner access)
+- `20250111_fix_organizations_rls_with_trigger.sql` - Fix organizations RLS with proper trigger support
+- `20250111_fix_rls_policies_use_authenticated_role.sql` - Update RLS policies to use authenticated role
+- `20250111_fix_user_organizations_rls_use_authenticated_role.sql` - User organizations RLS authenticated role fix
+
+### Feature Tables
+
+- `20250112_create_transactions_table.sql` - Transactions table with full schema and RLS policies
+- `20250112_fix_trigger_security_context.sql` - Fix trigger security context for transactions
+- `20250114_create_apikeys_table.sql` - API keys table with bcrypt hashing and RLS
+- `20250114_seed_test_apikeys.sql` - Seed test API keys for development
+- `20250115_create_crypto_prices_table.sql` - Crypto prices table with CoinGecko integration
+- `20250115_seed_crypto_prices.sql` - Seed initial crypto price data (BTC, ETH, MNEE, etc.)
+
+### Migration Order
+
+Migrations are applied in timestamp order (YYYYMMDD format). Dependencies:
+
+1. RLS policy fixes (foundation)
+2. Transactions table (core feature)
+3. API keys table (security feature)
+4. Crypto prices table (price data)
 
 ## Notes
 

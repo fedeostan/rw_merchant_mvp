@@ -31,8 +31,7 @@ const getAuthToken = async (): Promise<string | null> => {
 };
 
 const getBaseURL = (): string => {
-  // For browser environments, use absolute URL for MSW compatibility
-  // MSW requires absolute URLs to properly intercept requests
+  // For browser environments, use absolute URL
   if (typeof window !== 'undefined') {
     return `${window.location.origin}/api`;
   }
